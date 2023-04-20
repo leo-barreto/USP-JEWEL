@@ -1,8 +1,3 @@
-C     program readfile
-C     implicit none
-C     write(*,*) 'Hello World!'
-C     end program
-
 C++   This is a library built to read external medium profiles ++
 C++   for JEWEL                                                ++
 
@@ -78,21 +73,31 @@ C++                                                            ++
       subroutine read_initvtx(np, tprofile, vtxprofile)
       implicit none
       integer np, ios, i, j, nlines, k
+      logical f_exist
       double precision tprofile(np, np, 60)
       double precision vtxprofile(np, np), tempmap(2000), vtxmap(2000)
-      character(200) rfile
+      !character(200) rfile
       double precision temp, dT, dsup, dinf
+C--hydro auxiliary files
+      COMMON /HYDROF/ INITVTXF 
+      CHARACTER*200 INITVTXF 
 
-      rfile='/sampa/leonardo/USP-JEWEL/initvertexmap.dat'
+      !rfile='/sampa/leonardo/USP-JEWEL/initvertexmap.dat'
 
 
-      ! Load initial vertex map from rfile
+      ! Load initial vertex map from INITVTXF
       tempmap = 0.0
       vtxmap = 0.0
       nlines = 1
 
-      write(*,*) 'Loading initial vertex transformation from ', rfile
-      open(1, file=rfile, iostat=ios)
+      write(*,*) 'Loading initial vertex transformation from ', INITVTXF
+      inquire(file=INITVTXF, exist=f_exist)
+      if (f_exist .eqv. .false.) then
+          write(*,*) 'INITVTXF does not exist. Killing simulation.'
+          stop
+      end if      
+
+      open(1, file=INITVTXF, iostat=ios)
       do while (ios .eq. 0)
           read(1, *, iostat=ios) tempmap(nlines), vtxmap(nlines)
           nlines = nlines + 1
@@ -101,9 +106,9 @@ C++                                                            ++
       close(1)
 
 
-      if (nlines .gt. 2000) then
-          write(*,*) 'WARNING: init vertex table is too large. Informati
-     &on is being lost. Check read_initvtx'
+      if (nlines .gt. 5000 .or. nlines .lt. 2) then
+          write(*,*) 'WARNING: init vertex table size is wrong.
+     &Check read_initvtx'
       end if
 
       ! Transform tprofile IC (tau0) into hard scattering

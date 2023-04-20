@@ -97,9 +97,13 @@ C--nuclear thickness function
 C--geometrical cross section
       COMMON /CROSSSEC/ IMPMAX,CROSS(200,3)
       DOUBLE PRECISION IMPMAX,CROSS
-C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM
+C--hydrodynamic quantities
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TRANSVEL
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM
+      LOGICAL TRANSVEL
+C--hydro auxiliary files
+      COMMON /HYDROF/ INITVTXF
+      CHARACTER*200 INITVTXF
 C--identifier of log file
       common/logfile/logfid
       integer logfid
@@ -152,7 +156,10 @@ C--hydro settings
       MEDFILELIST=.FALSE. ! Deprecated
       MIDRAPLIM=3.5d0  ! Soft mid rap lim nucl-ex/1612.08966
       TMAXLIM=0.675d0   ! Approx vUSP+TRENTo temp lim (PbPb 5TeV)
-      
+      TRANSVEL= .true. ! Logical for transverse velocity (F => u=0)
+      !GRIDN=834     ! Number of points in grid (per dimension)
+      ! Initial vertex map file
+      INITVTXF='/sampa/leonardo/USP-JEWEL/initvertexmap.dat' 
 
 
 C--read settings from file
@@ -201,9 +208,16 @@ C--read settings from file
             READ(BUFFER,*,IOSTAT=IOS) MIDRAPLIM
           ELSE IF (LABEL=="TMAXLIM") THEN
             READ(BUFFER,*,IOSTAT=IOS) TMAXLIM
+          ELSE IF (LABEL=="TRANSVEL") THEN
+            READ(BUFFER,*,IOSTAT=IOS) TRANSVEL
+          !ELSE IF (LABEL=="GRIDN") THEN
+            !READ(BUFFER,*,IOSTAT=IOS) GRIDN
+          ELSE IF (LABEL=="INITVTXF") THEN
+            READ(BUFFER,*,IOSTAT=IOS) INITVTXF
           ELSE IF (LABEL=="BREAL") THEN
             READ(BUFFER,*,IOSTAT=IOS) breal
-	     else
+
+	  else
        write(logfid,*)'unknown label ',label
 	     endif
  20	  continue
@@ -221,24 +235,27 @@ C--read settings from file
 	endif
 
  40   write(logfid,*)'using parameters:'
-      write(logfid,*)'TAUI        =',TAUI
-      write(logfid,*)'TI          =',TI
-      write(logfid,*)'TC          =',TC
-      write(logfid,*)'WOODSSAXON  =',WOODSSAXON
-      write(logfid,*)'MODMED      =',MODMED
-      write(logfid,*)'MEDFILELIST =',MEDFILELIST
-      write(logfid,*)'CENTRMIN    =',CENTRMIN
-      write(logfid,*)'CENTRMAX    =',CENTRMAX
-      write(logfid,*)'NF          =',NF
-      write(logfid,*)'A           =',A
-      write(logfid,*)'N0          =',N0
-      write(logfid,*)'D           =',D
-      write(logfid,*)'SIGMANN     =',SIGMANN
-      write(logfid,*)'MDFACTOR    =',MDFACTOR
-      write(logfid,*)'MDSCALEFAC  =',MDSCALEFAC
-      write(logfid,*)'BREAL       =',breal
-      write(logfid,*)'MIDRAPLIM   =',MIDRAPLIM
-      write(logfid,*)'TMAXLIM     =',TMAXLIM
+      write(logfid,*)'TAUI        = ',TAUI
+      write(logfid,*)'TI          = ',TI
+      write(logfid,*)'TC          = ',TC
+      write(logfid,*)'WOODSSAXON  = ',WOODSSAXON
+      write(logfid,*)'MODMED      = ',MODMED
+      write(logfid,*)'MEDFILELIST = ',MEDFILELIST
+      write(logfid,*)'CENTRMIN    = ',CENTRMIN
+      write(logfid,*)'CENTRMAX    = ',CENTRMAX
+      write(logfid,*)'NF          = ',NF
+      write(logfid,*)'A           = ',A
+      write(logfid,*)'N0          = ',N0
+      write(logfid,*)'D           = ',D
+      write(logfid,*)'SIGMANN     = ',SIGMANN
+      write(logfid,*)'MDFACTOR    = ',MDFACTOR
+      write(logfid,*)'MDSCALEFAC  = ',MDSCALEFAC
+      write(logfid,*)'BREAL       = ',breal
+      write(logfid,*)'MIDRAPLIM   = ',MIDRAPLIM
+      write(logfid,*)'TMAXLIM     = ',TMAXLIM
+      write(logfid,*)'TRANSVEL    = ',TRANSVEL
+      !write(logfid,*)'GRIDN       = ',GRIDN
+      write(logfid,*)'INITVTXF    = ',INITVTXF
       write(logfid,*)
       write(logfid,*)
       write(logfid,*)
@@ -552,8 +569,9 @@ C--max rapidity
       DATA PI/3.141592653589793d0/
       double precision gettempmax
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TRANSVEL
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM
+      LOGICAL TRANSVEL
 C--local variables
       double precision px,py,pz,e,getmsmax,m,ys
       
@@ -755,8 +773,15 @@ C--local variables
      &      SIGMANN
             INTEGER A
             LOGICAL WOODSSAXON,MODMED,MEDFILELIST
+C--hydrodynamic quantities
+            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TRANSVEL
+            DOUBLE PRECISION MIDRAPLIM, TMAXLIM
+            LOGICAL TRANSVEL
 
             getu = 0.d0
+            IF (TRANSVEL .eqv. .false.) then
+              RETURN
+            END IF
             tau = sqrt(t**2 - z**2)
             IF ((tau.le.TAUI) .OR. (localtemperature.le.TC)) THEN
               RETURN
@@ -781,8 +806,16 @@ C--local variables
      &      SIGMANN
             INTEGER A
             LOGICAL WOODSSAXON,MODMED,MEDFILELIST
+C--hydrodynamic quantities
+            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TRANSVEL
+            DOUBLE PRECISION MIDRAPLIM, TMAXLIM
+            LOGICAL TRANSVEL
 
             getutheta = 0.d0
+            IF (TRANSVEL .eqv. .false.) then
+              RETURN
+            END IF
+
             tau = sqrt(t**2 - z**2)
             IF ((tau.le.TAUI) .OR. (localtemperature.le.TC)) THEN
               RETURN
@@ -905,8 +938,9 @@ C--medium parameters
 C--function call
       DOUBLE PRECISION GETTEMP
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TRANSVEL
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM
+      LOGICAL TRANSVEL
       
       !GETTEMPMAX=GETTEMP(0.D0,0.D0,0.D0,TAUI)
       !write(*,*) "Max temp:", tempmaximum
@@ -1291,9 +1325,9 @@ C--   local variables
       double precision PI
       DATA PI/3.141592653589793d0/
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TRANSVEL
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM
-
+      LOGICAL TRANSVEL
 C--grid parameters
       common/gridpar/ gdt,gdx,gxmax,gxmin,gnx,gny,gnt
       double precision gdt,gdx,gxmax,gxmin,s
@@ -1342,7 +1376,12 @@ C--as well as its highest temperature
               ltime=.false.
 
               ! Calculate other limts
-              cvel = u(kk, kkk, k)
+              if (TRANSVEL .eqv. .true.) then
+                cvel = u(kk, kkk, k)
+              else 
+                cvel = 0
+              end if 
+
               if (cvel.gt.velmaximum) then
                 velmaximum = cvel
               end if
