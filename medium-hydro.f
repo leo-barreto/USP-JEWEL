@@ -81,14 +81,14 @@ C--medium parameters
       INTEGER A
       LOGICAL WOODSSAXON,MODMED,MEDFILELIST
 C--max rapidity
-	common/rapmax2/etamax2
-	double precision etamax2
+      common/rapmax2/etamax2
+      double precision etamax2
 C--longitudinal boost of momentum distribution
-	common/boostmed/boost
-	logical boost
+      common/boostmed/boost
+      logical boost
 C--factor to vary Debye mass
-	COMMON/MDFAC/MDFACTOR,MDSCALEFAC
-	DOUBLE PRECISION MDFACTOR,MDSCALEFAC
+      COMMON/MDFAC/MDFACTOR,MDSCALEFAC
+      DOUBLE PRECISION MDFACTOR,MDSCALEFAC
       common/temperature/tempfac
       double precision tempfac
 C--nuclear thickness function
@@ -300,43 +300,9 @@ C--local variables
       integer i,j
       DOUBLE PRECISION PYR,R,b1,b2,gettemp
 
-C--pick an impact parameter
-!      if(.not. modmed) then
-!      r=(pyr(0)*(centrmax-centrmin)+centrmin)/100.
-!      i=0
-!      do 130 j=1,200
-!       if ((r-cross(j,3)/cross(200,3)).ge.0.) then
-!        i=i+1
-!       else 
-!        goto 132
-!       endif
-! 130  continue
-! 132  continue
-!      b1 = (i-1)*0.1d0
-!      b2 = i*0.1d0
-!      breal = (b2*(cross(i,3)/cross(200,3)-r)
-!     &      +b1*(r-cross(i+1,3)/cross(200,3)))/
-!     &	(cross(i,3)/cross(200,3)-cross(i+1,3)/cross(200,3))
-!      !write(*,*) "Parâmetro de impacto = ",breal
-!      centr = r;
-!      
-!      end if
-
+      ! Dummy function
       END
 
-!      double precision function getcentrality()
-!      implicit none
-!      COMMON/MEDPARAM/CENTRMIN,CENTRMAX,BREAL,CENTR,RAU,
-!     & NX,NY,NT,NF,DX,DT,XMAX,XMIN,TMAX
-!      INTEGER NX,NY,NT,NF
-!      DOUBLE PRECISION DX,DT,XMAX,XMIN,TMAX
-!      DOUBLE PRECISION CENTRMIN,CENTRMAX,BREAL,CENTR,RAU
-!      common/grid/timesteps(60),tprofile(834,834,60),vtxmap(834,834)
-!      double precision timesteps,tprofile,vtxmap
-!      common/gridvel/ux(834,834,60),uy(834,834,60)
-!      double precision ux,uy
-!      getcentrality=centr
-!      end
 
 
       SUBROUTINE PICKVTX(x, y)
@@ -381,23 +347,6 @@ C--medium parameters
       END SUBROUTINE
 
 
-!      SUBROUTINE SETB(BVAL)
-!      IMPLICIT NONE
-!C--medium parameters
-!      COMMON/MEDPARAM/CENTRMIN,CENTRMAX,BREAL,CENTR,RAU,
-!     & NX,NY,NT,NF,DX,DT,XMAX,XMIN,TMAX
-!      INTEGER NX,NY,NT,NF
-!      DOUBLE PRECISION DX,DT,XMAX,XMIN,TMAX
-!      DOUBLE PRECISION CENTRMIN,CENTRMAX,BREAL,CENTR,RAU
-!      common/grid/timesteps(60),tprofile(834,834,60),vtxmap(834,834)
-!      double precision timesteps,tprofile,vtxmap
-!      common/gridvel/ux(834,834,60),uy(834,834,60)
-!      double precision ux,uy
-!      DOUBLE PRECISION BVAL
-!      BREAL=BVAL
-!      END
-
-
 
       SUBROUTINE GETSCATTERER(X,Y,Z,T,TYPE,PX,PY,PZ,E,MS)
       IMPLICIT NONE
@@ -417,13 +366,13 @@ C--internal medium parameters
       INTEGER A
       LOGICAL WOODSSAXON,MODMED
 C--longitudinal boost of momentum distribution
-	common/boostmed/boost
-	logical boost
+      common/boostmed/boost
+      logical boost
 C--function calls
       DOUBLE PRECISION GETTEMP,GETMD,GETMOM,GETMS
 C--identifier of log file
-	common/logfile/logfid
-	integer logfid
+      common/logfile/logfid
+      integer logfid
 C--local variables
       DOUBLE PRECISION X,Y,Z,T,MS,PX,PY,PZ,E,MD,TEMP
       double precision u,ux,uy,px2,py2,px3,py3,e3
@@ -457,24 +406,24 @@ C--local variables
 
       pmax = 10.*temp
 
-      IF(TEMP.LT.1.D-2)THEN
-       write(logfid,*)'asking for a scattering centre without medium:'
-       write(logfid,*)'at (x,y,z,t)=',X,Y,Z,T
-       write(logfid,*)'making one up to continue but '//
-     &	'something is wrong!'
-       TYPE=21
-       PX=0.d0
-       PY=0.d0
-       PZ=0.d0
+      IF(TEMP.LT.1.D-2) THEN
+        write(logfid,*)'asking for a scattering centre without medium:'
+        write(logfid,*)'at (x,y,z,t)=',X,Y,Z,T
+        write(logfid,*)'making one up to continue but '//
+     &'something is wrong!'
+        TYPE=21
+        PX=0.d0
+        PY=0.d0
+        PZ=0.d0
 
        ! JEWEL original
        !MS=GETMS(0.d0,0.d0,0.d0,0.d0)
        !MD=GETMD(0.d0,0.d0,0.d0,0.d0)
 
-       MD=GETMD(0.d0,0.d0,0.d0,0.d0)
-       MS=MD / sqrt(2.)
-       E=SQRT(PX**2+PY**2+PZ**2+MS**2)
-       RETURN
+        MD=GETMD(0.d0,0.d0,0.d0,0.d0)
+        MS=MD / sqrt(2.)
+        E=SQRT(PX**2+PY**2+PZ**2+MS**2)
+        RETURN
       ENDIF
 
  10	p = pyr(0)**0.3333333*pmax
@@ -607,8 +556,8 @@ C--local variables
       DOUBLE PRECISION FUNCTION GETMD(X1,Y1,Z1,T1)
       IMPLICIT NONE
 C--factor to vary Debye mass
-	COMMON/MDFAC/MDFACTOR,MDSCALEFAC
-	DOUBLE PRECISION MDFACTOR,MDSCALEFAC
+      COMMON/MDFAC/MDFACTOR,MDSCALEFAC
+      DOUBLE PRECISION MDFACTOR,MDSCALEFAC
       DOUBLE PRECISION X1,Y1,Z1,T1,GETTEMP
       double precision getmdmin
       GETMD=MDSCALEFAC*3.*GETTEMP(X1,Y1,Z1,T1)
@@ -722,8 +671,8 @@ C--medium parameters
       DOUBLE PRECISION GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
      &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
 C--max rapidity
-	common/rapmax2/etamax2
-	double precision etamax2
+      common/rapmax2/etamax2
+      double precision etamax2
       common/temperature/tempfac
       double precision tempfac
 C--local variables
@@ -952,8 +901,8 @@ C--hydrodynamic limits
       DOUBLE PRECISION FUNCTION GETMDMAX()
       IMPLICIT NONE
 C--factor to vary Debye mass
-	COMMON/MDFAC/MDFACTOR,MDSCALEFAC
-	DOUBLE PRECISION MDFACTOR,MDSCALEFAC
+      COMMON/MDFAC/MDFACTOR,MDSCALEFAC
+      DOUBLE PRECISION MDFACTOR,MDSCALEFAC
       DOUBLE PRECISION GETTEMPMAX
       GETMDMAX=MDSCALEFAC*3.*GETTEMPMAX()
       GETMDMAX=MAX(GETMDMAX,MDFACTOR)
@@ -980,10 +929,10 @@ C--medium parameters
       INTEGER A
       LOGICAL WOODSSAXON,MODMED,MEDFILELIST
 C--factor to vary Debye mass
-	COMMON/MDFAC/MDFACTOR,MDSCALEFAC
-	DOUBLE PRECISION MDFACTOR,MDSCALEFAC
+      COMMON/MDFAC/MDFACTOR,MDSCALEFAC
+      DOUBLE PRECISION MDFACTOR,MDSCALEFAC
       DOUBLE PRECISION GETTEMPMAX
-	GETMDMIN=MDSCALEFAC*3.*TC
+      GETMDMIN=MDSCALEFAC*3.*TC
       GETMDMIN=MAX(GETMDMIN,MDFACTOR)
       END
 
@@ -997,8 +946,8 @@ C--factor to vary Debye mass
 
 
 
-	DOUBLE PRECISION FUNCTION GETNATMDMIN()
-	IMPLICIT NONE
+      DOUBLE PRECISION FUNCTION GETNATMDMIN()
+      IMPLICIT NONE
 C--medium parameters
       COMMON/MEDPARAM/CENTRMIN,CENTRMAX,BREAL,CENTR,RAU,
      & NX,NY,NT,NF,DX,DT,XMAX,XMIN,TMAX
@@ -1020,24 +969,24 @@ C--medium parameters
       DOUBLE PRECISION GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
      &DENSITYMINIMUM, TAUMIN
 C--max rapidity
-	common/rapmax2/etamax2
-	double precision etamax2
+      common/rapmax2/etamax2
+      double precision etamax2
 C--factor to vary Debye mass
-	COMMON/MDFAC/MDFACTOR,MDSCALEFAC
-	DOUBLE PRECISION MDFACTOR,MDSCALEFAC,PI
+      COMMON/MDFAC/MDFACTOR,MDSCALEFAC
+      DOUBLE PRECISION MDFACTOR,MDSCALEFAC,PI
       DATA PI/3.141592653589793d0/
 C--local variables
-	DOUBLE PRECISION T,GETMDMIN
-	T=GETMDMIN()/(MDSCALEFAC*3.)
+      DOUBLE PRECISION T,GETMDMIN
+      T=GETMDMIN()/(MDSCALEFAC*3.)
       GETNATMDMIN=(2.*6.*NF*D3*2./3. + 16.*ZETA3*3./2.)
      &     *T**3/PI**2
       GETNATMDMIN=min(GETNATMDMIN,DENSITYMINIMUM)
-	END
+      END
 
 
 
-	DOUBLE PRECISION FUNCTION GETLTIMEMAX()
-	IMPLICIT NONE
+      DOUBLE PRECISION FUNCTION GETLTIMEMAX()
+      IMPLICIT NONE
 C--medium parameters
       COMMON/LTIME/MODLTIME
       DOUBLE PRECISION MODLTIME
@@ -1061,19 +1010,19 @@ C--medium parameters
       DOUBLE PRECISION GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
      &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
 C--max rapidity
-	common/rapmax2/etamax2
-	double precision etamax2
+      common/rapmax2/etamax2
+      double precision etamax2
 C--function call
       DOUBLE PRECISION GETTEMPMAX
       !if(medfilelist.eqv..false.) then
       if(.false.) then
-	  GETLTIMEMAX=TAUI*(GETTEMPMAX()/TC)**3*cosh(etamax2)
+        GETLTIMEMAX=TAUI*(GETTEMPMAX()/TC)**3*cosh(etamax2)
       else
       !Fabio: Putting my LTIME
       !write(*,*) "Lifetime whithout boost:",modltime
       GETLTIMEMAX=MODLTIME*cosh(etamax2)
       endif
-	 END
+      END
 
 
       DOUBLE PRECISION FUNCTION GETNEFFMAX()
@@ -1101,9 +1050,9 @@ C--function call
       DOUBLE PRECISION GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
      &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
 C--max rapidity
-	common/rapmax2/etamax2
-	double precision etamax2
-C--   local variables
+     common/rapmax2/etamax2
+      double precision etamax2
+C--local variables
       DOUBLE PRECISION PI,GETTEMPMAX
       double precision J0, JR, J3, P0, P1, P2, P3, PR, gamtot
       DATA PI/3.141592653589793d0/
@@ -1112,168 +1061,6 @@ C--   local variables
       END
 
       
-!
-!      DOUBLE PRECISION FUNCTION NPART(XX1,YY1,XX2,YY2)
-!      IMPLICIT NONE
-!      COMMON/MEDPARAMINT/TAUI,TI,TC,D3,ZETA3,D,
-!     &N0,SIGMANN,A,WOODSSAXON,MODMED,MEDFILELIST
-!      DOUBLE PRECISION TAUI,TI,TC,ALPHA,BETA,GAMMA,D3,ZETA3,D,N0,
-!     &SIGMANN
-!      INTEGER A
-!      LOGICAL WOODSSAXON,MODMED,MEDFILELIST
-!C--local variables
-!      DOUBLE PRECISION XX1,YY1,XX2,YY2,NTHICK
-!      NPART = NTHICK(XX1,YY1)*(1.-EXP(-SIGMANN*NTHICK(XX2,YY2))) +
-!     &        NTHICK(XX2,YY2)*(1.-EXP(-SIGMANN*NTHICK(XX1,YY1)))
-!
-!      END
-!      
-!
-!
-!      DOUBLE PRECISION FUNCTION NTHICK(X1,Y1)
-!      IMPLICIT NONE
-!C--medium parameters
-!      COMMON/MEDPARAM/CENTRMIN,CENTRMAX,BREAL,CENTR,RAU,
-!     & NX,NY,NT,NF,DX,DT,XMAX,XMIN,TMAX
-!      INTEGER NX,NY,NT,NF
-!      DOUBLE PRECISION DX,DT,XMAX,XMIN,TMAX
-!      DOUBLE PRECISION CENTRMIN,CENTRMAX,BREAL,CENTR,RAU
-!      common/grid/timesteps(60),tprofile(834,834,60),vtxmap(834,834)
-!      double precision timesteps,tprofile,vtxmap
-!      common/gridvel/ux(834,834,60),uy(834,834,60)
-!      double precision ux,uy
-!      COMMON/MEDPARAMINT/TAUI,TI,TC,D3,ZETA3,D,
-!     &N0,SIGMANN,A,WOODSSAXON,MODMED,MEDFILELIST
-!      DOUBLE PRECISION TAUI,TI,TC,ALPHA,BETA,GAMMA,D3,ZETA3,D,N0,
-!     &SIGMANN
-!      INTEGER A
-!      LOGICAL WOODSSAXON,MODMED,MEDFILELIST
-!C--identifier of log file
-!	common/logfile/logfid
-!	integer logfid
-!C--nuclear thickness function
-!      COMMON /THICKFNC/ RMAX,TA(100,2)
-!      DOUBLE PRECISION RMAX,TA
-!      INTEGER LINE,LMIN,LMAX,I
-!      DOUBLE PRECISION X1,Y1,XA(4),YA(4),Y,DY,R,C,B,DELTA
-!  
-!      R=SQRT(X1**2+Y1**2)
-!      IF(R.GT.TA(100,1))THEN
-!	 NTHICK=0.
-!      ELSE
-!	 LINE=INT(R*99.d0/TA(100,1)+1)
-!	 LMIN=MAX(LINE,1)
-!	 LMIN=MIN(LMIN,99)
-!	 IF((R.LT.TA(LMIN,1)).OR.(R.GT.TA(LMIN+1,1)))
-!     &	write(logfid,*)LINE,LMIN,R,TA(LMIN,1),TA(LMIN+1,1)
-!	 XA(1)=TA(LMIN,1)
-!	 XA(2)=TA(LMIN+1,1)
-!	 YA(1)=TA(LMIN,2)
-!	 YA(2)=TA(LMIN+1,2)
-!	 C=(YA(2)-YA(1))/(XA(2)-XA(1))
-!	 B=YA(1)-C*XA(1)
-!	 NTHICK=C*R+B
-!      ENDIF
-!      END
-!
-!
-!
-!      SUBROUTINE CALCTA()
-!      IMPLICIT NONE
-!C--medium parameters
-!      COMMON/MEDPARAM/CENTRMIN,CENTRMAX,BREAL,CENTR,RAU,
-!     & NX,NY,NT,NF,DX,DT,XMAX,XMIN,TMAX
-!      INTEGER NX,NY,NT,NF
-!      DOUBLE PRECISION DX,DT,XMAX,XMIN,TMAX
-!      DOUBLE PRECISION CENTRMIN,CENTRMAX,BREAL,CENTR,RAU
-!      common/grid/timesteps(60),tprofile(834,834,60),vtxmap(834,834)
-!      double precision timesteps,tprofile,vtxmap
-!      common/gridvel/ux(834,834,60),uy(834,834,60)
-!      double precision ux,uy
-!      COMMON/MEDPARAMINT/TAUI,TI,TC,D3,ZETA3,D,
-!     &N0,SIGMANN,A,WOODSSAXON,MODMED,MEDFILELIST
-!      DOUBLE PRECISION TAUI,TI,TC,ALPHA,BETA,GAMMA,D3,ZETA3,D,N0,
-!     &SIGMANN
-!      INTEGER A
-!      LOGICAL WOODSSAXON,MODMED,MEDFILELIST
-!C--   nuclear thickness function
-!      COMMON /THICKFNC/ RMAX,TA(100,2)
-!      DOUBLE PRECISION RMAX,TA
-!C--variables for integration
-!      COMMON/INTEG/B,R
-!      DOUBLE PRECISION B,R
-!C--local variables
-!      INTEGER NSTEPS,I
-!      DOUBLE PRECISION EPS,HFIRST,Y
-!
-!      NSTEPS=100
-!      EPS=1.E-4
-!      HFIRST=0.1D0
-!
-!      R=1.12*A**(0.33333)-0.86*A**(-0.33333)
-!      RMAX=2.*R
-!
-!      DO 10 I=1,NSTEPS
-!C--set transverse position
-!       B=(I-1)*2.D0*R/NSTEPS
-!       Y=0.D0
-!C--integrate along longitudinal line
-!       CALL ODEINT(Y,-2*R,2*R,EPS,HFIRST,0.d0,101)
-!       TA(I,1)=B
-!       TA(I,2)=Y
-! 10   CONTINUE
-!      END
-!
-!
-!
-!      SUBROUTINE CALCXSECTION()
-!      IMPLICIT NONE
-!C--medium parameters
-!      COMMON/MEDPARAM/CENTRMIN,CENTRMAX,BREAL,CENTR,RAU,
-!     & NX,NY,NT,NF,DX,DT,XMAX,XMIN,TMAX
-!      INTEGER NX,NY,NT,NF
-!      DOUBLE PRECISION DX,DT,XMAX,XMIN,TMAX
-!      DOUBLE PRECISION CENTRMIN,CENTRMAX,BREAL,CENTR,RAU
-!      common/grid/timesteps(60),tprofile(834,834,60),vtxmap(834,834)
-!      double precision timesteps,tprofile,vtxmap
-!      common/gridvel/ux(834,834,60),uy(834,834,60)
-!      double precision ux,uy
-!      COMMON/MEDPARAMINT/TAUI,TI,TC,D3,ZETA3,D,
-!     &N0,SIGMANN,A,WOODSSAXON,MODMED,MEDFILELIST
-!      DOUBLE PRECISION TAUI,TI,TC,ALPHA,BETA,GAMMA,D3,ZETA3,D,N0,
-!     &SIGMANN
-!      INTEGER A
-!      LOGICAL WOODSSAXON,MODMED,MEDFILELIST
-!C--   geometrical cross section
-!      COMMON /CROSSSEC/ IMPMAX,CROSS(200,3)
-!      DOUBLE PRECISION IMPMAX,CROSS
-!C--local variables
-!      INTEGER IX,IY,IB
-!      DOUBLE PRECISION B,P,PROD,X,Y,NTHICK,NPART,pprev
-!      pprev=0.d0
-!      DO 30 IB=1,200
-!       B=0.1d0*IB
-!       PROD=1.d0
-!       DO 10 IX=1,100
-!        DO 20 IY=1,100
-!         X=-20.d0+IX*0.4d0
-!         Y=-20.d0+IY*0.4d0
-!         PROD=PROD*
-!     &EXP(-NTHICK(X+B/2.D0,Y)*SIGMANN)**(0.16d0*NTHICK(X-B/2.D0,Y))
-! 20     CONTINUE
-! 10    CONTINUE
-!       P=(1.D0-PROD)*8.8D0/14.D0*B
-!       CROSS(IB,1)=B
-!       CROSS(IB,2)=P
-!       if (ib.eq.1) then
-!        cross(ib,3)=0.d0
-!       else
-!        cross(ib,3)=cross(ib-1,3)+(p+pprev)/2.*0.1
-!       endif
-!       pprev=p
-! 30   CONTINUE
-!      IMPMAX=19.95d0
-!      END
 
       SUBROUTINE MYMED()
       IMPLICIT NONE
