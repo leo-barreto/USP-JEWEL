@@ -1050,7 +1050,7 @@ C--function call
       DOUBLE PRECISION GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
      &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
 C--max rapidity
-     common/rapmax2/etamax2
+      common/rapmax2/etamax2
       double precision etamax2
 C--local variables
       DOUBLE PRECISION PI,GETTEMPMAX
@@ -1085,8 +1085,8 @@ C--local variables
       LOGICAL WOODSSAXON,MODMED,MEDFILELIST
       common/boostmed/boost
       logical boost
-	common/rapmax2/etamax2
-	double precision etamax2
+      common/rapmax2/etamax2
+      double precision etamax2
       COMMON/MEDFILEC/MEDFILE,NLIST,endoff
       CHARACTER*200 MEDFILE
       INTEGER NLIST
@@ -1106,7 +1106,7 @@ C--local variables
       INTEGER I,J,K,POS,II,kk,kkk,length
       logical ltime
       double precision hightemp, cdensmin, cdensmax, cvel, cveltot,
-     &densconst, randuz, randpz, randpr, cdens, pyr
+     &densconst, randuz, randpz, randpr, cdens, pyr, maxu
       integer nrandpoints, irand
       double precision densityarray(834,834,60)
       double precision PI
@@ -1200,23 +1200,27 @@ C--as well as its highest temperature
 
       ! Setup global density limits
       ! neff = n * p_mu u^mu / p0, check GETNEFF
-      ! Ignore transverse vel as uz dominates
+      ! neff_max(min) goes with gamma +(-) |vec u|
+      ! Both uses the maximum value of u
+      ! Relation between T and u is ignored for now
       gammamaximum=sqrt(1 + velmaximum ** 2)
+      maxu = sqrt(velmaximum ** 2 + sinh(MIDRAPLIM) ** 2)
       densconst = (2.*6.*NF*D3*2./3. + 16.*ZETA3*3./2.)/PI**2
-      densitymaximum = densconst * TMAXLIM ** 3 * (sqrt(1 + velmaximum 
-     &** 2 + sinh(MIDRAPLIM) ** 2) + sinh(MIDRAPLIM)) 
+
+      densitymaximum = densconst * TMAXLIM ** 3 *
+     &(sqrt(1 + maxu ** 2) + maxu) 
+
       densityminimum = densconst * TC ** 3 *
-     &(cosh(MIDRAPLIM) - sinh(MIDRAPLIM)) 
+     &(sqrt(1 + maxu ** 2) + maxu) 
 
       write(*,*)
       write(*,*) "TAU max (for limits)= ", timesteps(nt - 1)
       write(*,*) "Highest temp = ", hightemp
       write(*,*) "Highest u_r = ", velmaximum
       write(*,*) "Highest gamma_r = ", gammamaximum
-      write(*,*) "Highest u (with Bjorken) = ", sqrt(velmaximum ** 2 +
-     &sinh(MIDRAPLIM) ** 2)
+      write(*,*) "Highest u (with Bjorken) = ", maxu
       write(*,*) "Highest gamma (with Bjorken) = ", sqrt(1 + 
-     &velmaximum ** 2 + sinh(MIDRAPLIM) ** 2)
+     &maxu ** 2)
       write(*,*) "Highest effective density = ", densitymaximum
       write(*,*) "Lowest effective density = ", densityminimum
 
