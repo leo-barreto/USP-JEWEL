@@ -98,8 +98,8 @@ C--geometrical cross section
       COMMON /CROSSSEC/ IMPMAX,CROSS(200,3)
       DOUBLE PRECISION IMPMAX,CROSS
 C--hydrodynamic quantities
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TRANSVEL
-      DOUBLE PRECISION MIDRAPLIM, TMAXLIM
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL
+      DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
       LOGICAL TRANSVEL
 C--hydro auxiliary files
       COMMON /HYDROF/ INITVTXF
@@ -157,6 +157,7 @@ C--hydro settings
       MIDRAPLIM=3.5d0  ! Soft mid rap lim nucl-ex/1612.08966
       TMAXLIM=0.675d0   ! Approx vUSP+TRENTo temp lim (PbPb 5TeV)
       TRANSVEL= .true. ! Logical for transverse velocity (F => u=0)
+      TVELMAXLIM=0.927d0   ! Approx vUSP+TRENTo uT lim (PbPb 5TeV)
       !GRIDN=834     ! Number of points in grid (per dimension)
       ! Initial vertex map file
       INITVTXF='/sampa/leonardo/USP-JEWEL/initvertexmap.dat' 
@@ -210,6 +211,8 @@ C--read settings from file
             READ(BUFFER,*,IOSTAT=IOS) TMAXLIM
           ELSE IF (LABEL=="TRANSVEL") THEN
             READ(BUFFER,*,IOSTAT=IOS) TRANSVEL
+          ELSE IF (LABEL=="TVELMAXLIM") THEN
+            READ(BUFFER,*,IOSTAT=IOS) TVELMAXLIM
           !ELSE IF (LABEL=="GRIDN") THEN
             !READ(BUFFER,*,IOSTAT=IOS) GRIDN
           ELSE IF (LABEL=="INITVTXF") THEN
@@ -254,6 +257,7 @@ C--read settings from file
       write(logfid,*)'MIDRAPLIM   = ',MIDRAPLIM
       write(logfid,*)'TMAXLIM     = ',TMAXLIM
       write(logfid,*)'TRANSVEL    = ',TRANSVEL
+      write(logfid,*)'TVELMAXLIM  = ',TVELMAXLIM
       !write(logfid,*)'GRIDN       = ',GRIDN
       write(logfid,*)'INITVTXF    = ',INITVTXF
       write(logfid,*)
@@ -267,7 +271,14 @@ C--read settings from file
         write(logfid,*) 'ETAMAX > MIDRAPLIM'
         write(logfid,*) 'Extrapolating mid-rapidity limit' 
         write(logfid,*)
-      endif
+      end if
+
+      if (.not. TRANSVEL) then
+        TVELMAXLIM = 0.d0 
+        write(logfid,*) 'No transverse u => TVELMAXLIM = 0'
+        write(logfid,*)
+      end if
+
 C--Call the modified medium setup
       CALL MYMED()
       write(logfid,*) 'Hydrodynamic profile loaded: ', MEDFILE
@@ -518,8 +529,8 @@ C--max rapidity
       DATA PI/3.141592653589793d0/
       double precision gettempmax
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TRANSVEL
-      DOUBLE PRECISION MIDRAPLIM, TMAXLIM
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL
+      DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
       LOGICAL TRANSVEL
 C--local variables
       double precision px,py,pz,e,getmsmax,m,ys
@@ -544,11 +555,12 @@ C--local variables
       endif
       
       m = getmsmax()
-      e = m * sqrt(1 + sinh(ys) ** 2 + velmaximum ** 2)
-      !Use max transverse velocity, any angle should work
-      !px = m * velmaximum 
-      px = 0.d0 
-      py = 0.d0
+      e = m * sqrt(1 + sinh(ys) ** 2 + TVELMAXLIM ** 2)
+      !This functions is only considered for the final
+      !momentum value, not each component (i.e. |p|),
+      !thus the angle of TVELMAXLIM does not matter
+      px = m * TVELMAXLIM / sqrt(2.) 
+      py = m * TVELMAXLIM / sqrt(2.)
       pz = m * sinh(ys)
       end
 
@@ -723,8 +735,8 @@ C--local variables
             INTEGER A
             LOGICAL WOODSSAXON,MODMED,MEDFILELIST
 C--hydrodynamic quantities
-            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TRANSVEL
-            DOUBLE PRECISION MIDRAPLIM, TMAXLIM
+            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL
+            DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
             LOGICAL TRANSVEL
 
             getu = 0.d0
@@ -756,8 +768,8 @@ C--hydrodynamic quantities
             INTEGER A
             LOGICAL WOODSSAXON,MODMED,MEDFILELIST
 C--hydrodynamic quantities
-            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TRANSVEL
-            DOUBLE PRECISION MIDRAPLIM, TMAXLIM
+            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL
+            DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
             LOGICAL TRANSVEL
 
             getutheta = 0.d0
@@ -887,8 +899,8 @@ C--medium parameters
 C--function call
       DOUBLE PRECISION GETTEMP
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TRANSVEL
-      DOUBLE PRECISION MIDRAPLIM, TMAXLIM
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL
+      DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
       LOGICAL TRANSVEL
       
       !GETTEMPMAX=GETTEMP(0.D0,0.D0,0.D0,TAUI)
@@ -1112,8 +1124,8 @@ C--local variables
       double precision PI
       DATA PI/3.141592653589793d0/
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TRANSVEL
-      DOUBLE PRECISION MIDRAPLIM, TMAXLIM
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL
+      DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
       LOGICAL TRANSVEL
 C--grid parameters
       common/gridpar/ gdt,gdx,gxmax,gxmin,gnx,gny,gnt
@@ -1195,20 +1207,27 @@ C--as well as its highest temperature
 
       end do
 
+      if (velmaximum.gt.TVELMAXLIM) then
+        TVELMAXLIM = velmaximum
+        write(logfid,*) 'Maximum trans u for hydro profile > TVELMAXLIM'
+        write(logfid,*) 'Extrapolating trans u limit'
+        write(logfid,*)
+      end if 
+
 
       write(*,*)
 
       ! Setup global density limits
       ! neff = n * p_mu u^mu / p0, check GETNEFF
-      ! neff_max(min) goes with gamma +(-) |vec u|
-      ! Both uses the maximum value of u
-      ! Relation between T and u is ignored for now
-      gammamaximum=sqrt(1 + velmaximum ** 2)
-      maxu = sqrt(velmaximum ** 2 + sinh(MIDRAPLIM) ** 2)
+      ! neff_max is highest at tau0 (ux = uy = 0)
+      ! neff_min is lowest when u_T is max
+      ! due to temperature dependence
+      gammamaximum=sqrt(1 + TVELMAXLIM ** 2)
+      maxu = sqrt(TVELMAXLIM ** 2 + sinh(MIDRAPLIM) ** 2)
       densconst = (2.*6.*NF*D3*2./3. + 16.*ZETA3*3./2.)/PI**2
 
       densitymaximum = densconst * TMAXLIM ** 3 *
-     &(sqrt(1 + maxu ** 2) + maxu) 
+     &(sqrt(1 + sinh(MIDRAPLIM) ** 2) + sinh(MIDRAPLIM)) 
 
       densityminimum = densconst * TC ** 3 *
      &(sqrt(1 + maxu ** 2) + maxu) 
