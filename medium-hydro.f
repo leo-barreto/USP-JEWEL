@@ -98,9 +98,10 @@ C--geometrical cross section
       COMMON /CROSSSEC/ IMPMAX,CROSS(200,3)
       DOUBLE PRECISION IMPMAX,CROSS
 C--hydrodynamic quantities
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL, 
+     &GLOBALLIMS
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
-      LOGICAL TRANSVEL
+      LOGICAL TRANSVEL, GLOBALLIMS
 C--hydro auxiliary files
       COMMON /HYDROF/ INITVTXF
       CHARACTER*200 INITVTXF
@@ -149,12 +150,15 @@ C--default settings
       MDFACTOR=0.45d0
       MDSCALEFAC=0.9d0
       tempfac=1.0d0
-      boost = .true.
+      boost =.true.
       breal=0.d0
 C--hydro settings
       MODMED=.TRUE.       ! Deprecated
       MEDFILELIST=.FALSE. ! Deprecated
-      MIDRAPLIM=3.5d0  ! Soft mid rap lim nucl-ex/1612.08966
+      GLOBALLIMS = .true. ! Global limits vs JEWEL default impl.
+      ! Extrapolation of soft mid rap lim, +0.1 then tuning 
+      ! (see nucl-ex/1612.08966)
+      MIDRAPLIM=3.3d0
       TMAXLIM=0.675d0   ! Approx vUSP+TRENTo temp lim (PbPb 5TeV)
       TRANSVEL= .true. ! Logical for transverse velocity (F => u=0)
       TVELMAXLIM=0.927d0   ! Approx vUSP+TRENTo uT lim (PbPb 5TeV)
@@ -205,6 +209,8 @@ C--read settings from file
             READ(BUFFER,*,IOSTAT=IOS) MDFACTOR
           ELSE IF (LABEL=="MDSCALEFAC") THEN
             READ(BUFFER,*,IOSTAT=IOS) MDSCALEFAC
+          ELSE IF (LABEL=="GLOBALLIMS") THEN
+            READ(BUFFER,*,IOSTAT=IOS) GLOBALLIMS
           ELSE IF (LABEL=="MIDRAPLIM") THEN
             READ(BUFFER,*,IOSTAT=IOS) MIDRAPLIM
           ELSE IF (LABEL=="TMAXLIM") THEN
@@ -254,6 +260,7 @@ C--read settings from file
       write(logfid,*)'MDFACTOR    = ',MDFACTOR
       write(logfid,*)'MDSCALEFAC  = ',MDSCALEFAC
       write(logfid,*)'BREAL       = ',breal
+      write(logfid,*)'GLOBALLIMS  = ',GLOBALLIMS
       write(logfid,*)'MIDRAPLIM   = ',MIDRAPLIM
       write(logfid,*)'TMAXLIM     = ',TMAXLIM
       write(logfid,*)'TRANSVEL    = ',TRANSVEL
@@ -265,8 +272,10 @@ C--read settings from file
       write(logfid,*)
 
 
-
-      if (MIDRAPLIM.lt.etamax2) then
+      if (.not. boost) then
+        write(logfid,*) 'No longitudinal boost => MIDRAPLIM = 0'
+        MIDRAPLIM = 0.0
+      else if (MIDRAPLIM.lt.etamax2) then
         MIDRAPLIM = etamax2
         write(logfid,*) 'ETAMAX > MIDRAPLIM'
         write(logfid,*) 'Extrapolating mid-rapidity limit' 
@@ -529,9 +538,10 @@ C--max rapidity
       DATA PI/3.141592653589793d0/
       double precision gettempmax
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL, 
+     &GLOBALLIMS
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
-      LOGICAL TRANSVEL
+      LOGICAL TRANSVEL, GLOBALLIMS
 C--local variables
       double precision px,py,pz,e,getmsmax,m,ys
       
@@ -542,11 +552,10 @@ C--local variables
       !  ys = 0.d0
       !endif
 
-      !m  = getmsmax()
-      !e  = m*cosh(ys)
-      !px = 0.d0
-      !py = 0.d0
-      !pz = m*sinh(ys)
+      ! GETSSCAT limits are boost invariant
+      ! thus we keep the original code without
+      ! a transverse boost of the 4-momentum
+      ! This must be checked.
 
       if (boost) then
         ys = MIDRAPLIM
@@ -555,12 +564,9 @@ C--local variables
       endif
       
       m = getmsmax()
-      e = m * sqrt(1 + sinh(ys) ** 2 + TVELMAXLIM ** 2)
-      !This functions is only considered for the final
-      !momentum value, not each component (i.e. |p|),
-      !thus the angle of TVELMAXLIM does not matter
-      px = m * TVELMAXLIM / sqrt(2.) 
-      py = m * TVELMAXLIM / sqrt(2.)
+      e = m * cosh(ys)
+      px = 0
+      py = 0
       pz = m * sinh(ys)
       end
 
@@ -735,9 +741,10 @@ C--local variables
             INTEGER A
             LOGICAL WOODSSAXON,MODMED,MEDFILELIST
 C--hydrodynamic quantities
-            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL
+            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL, 
+     &      GLOBALLIMS
             DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
-            LOGICAL TRANSVEL
+            LOGICAL TRANSVEL, GLOBALLIMS
 
             getu = 0.d0
             IF (TRANSVEL .eqv. .false.) then
@@ -768,9 +775,10 @@ C--hydrodynamic quantities
             INTEGER A
             LOGICAL WOODSSAXON,MODMED,MEDFILELIST
 C--hydrodynamic quantities
-            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL
+            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL, 
+     &      GLOBALLIMS
             DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
-            LOGICAL TRANSVEL
+            LOGICAL TRANSVEL, GLOBALLIMS
 
             getutheta = 0.d0
             IF (TRANSVEL .eqv. .false.) then
@@ -899,9 +907,10 @@ C--medium parameters
 C--function call
       DOUBLE PRECISION GETTEMP
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL, 
+     &GLOBALLIMS
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
-      LOGICAL TRANSVEL
+      LOGICAL TRANSVEL, GLOBALLIMS
       
       !GETTEMPMAX=GETTEMP(0.D0,0.D0,0.D0,TAUI)
       !write(*,*) "Max temp:", tempmaximum
@@ -1124,9 +1133,10 @@ C--local variables
       double precision PI
       DATA PI/3.141592653589793d0/
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL, 
+     &GLOBALLIMS
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
-      LOGICAL TRANSVEL
+      LOGICAL TRANSVEL, GLOBALLIMS
 C--grid parameters
       common/gridpar/ gdt,gdx,gxmax,gxmin,gnx,gny,gnt
       double precision gdt,gdx,gxmax,gxmin,s
@@ -1217,6 +1227,25 @@ C--as well as its highest temperature
 
       write(*,*)
 
+      ! Define limits
+      if (.not. GLOBALLIMS) then
+        write(logfid,*) 'Using "medium profile-global" limits' 
+        write(logfid,*) 'Similar to JEWEL original impl. (vs global)' 
+        write(logfid,*) 'This could result in GETDELTAT weight errors'
+        
+        TMAXLIM = hightemp
+        TVELMAXLIM = velmaximum
+
+        if (boost) then
+          MIDRAPLIM = ETAMAX2
+        end if
+
+        write(logfid,*) 'TMAXLIM = ', TMAXLIM
+        write(logfid,*) 'TVELMAXLIM = ', TVELMAXLIM
+        write(logfid,*) 'MIDRAPLIM = ', MIDRAPLIM
+        write(logfid,*) 
+      end if
+        
       ! Setup global density limits
       ! neff = n * p_mu u^mu / p0, check GETNEFF
       ! neff_max is highest at tau0 (ux = uy = 0)
@@ -1230,7 +1259,7 @@ C--as well as its highest temperature
      &(sqrt(1 + sinh(MIDRAPLIM) ** 2) + sinh(MIDRAPLIM)) 
 
       densityminimum = densconst * TC ** 3 *
-     &(sqrt(1 + maxu ** 2) + maxu) 
+     &(sqrt(1 + maxu ** 2) - maxu) 
 
       write(*,*)
       write(*,*) "TAU max (for limits)= ", timesteps(nt - 1)
