@@ -98,10 +98,10 @@ C--geometrical cross section
       COMMON /CROSSSEC/ IMPMAX,CROSS(200,3)
       DOUBLE PRECISION IMPMAX,CROSS
 C--hydrodynamic quantities
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL, 
-     &GLOBALLIMS
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR, 
+     &GLOBALLIMS, PRETAUHYDRO
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
-      LOGICAL TRANSVEL, GLOBALLIMS
+      LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
 C--hydro auxiliary files
       COMMON /HYDROF/ INITVTXF
       CHARACTER*200 INITVTXF
@@ -160,8 +160,10 @@ C--hydro settings
       ! (see nucl-ex/1612.08966)
       MIDRAPLIM=3.3d0
       TMAXLIM=0.675d0   ! Approx vUSP+TRENTo temp lim (PbPb 5TeV)
-      TRANSVEL= .true. ! Logical for transverse velocity (F => u=0)
+      BOOSTTR= .true. ! Logical for transverse velocity (F => u=0)
       TVELMAXLIM=0.927d0   ! Approx vUSP+TRENTo uT lim (PbPb 5TeV)
+      ! Temperature assumption before TAU0, i.e. F => T(tau < tau0) = 0
+      PRETAUHYDRO=.false.
       !GRIDN=834     ! Number of points in grid (per dimension)
       ! Initial vertex map file
       INITVTXF='/sampa/leonardo/USP-JEWEL/initvertexmap.dat' 
@@ -215,14 +217,19 @@ C--read settings from file
             READ(BUFFER,*,IOSTAT=IOS) MIDRAPLIM
           ELSE IF (LABEL=="TMAXLIM") THEN
             READ(BUFFER,*,IOSTAT=IOS) TMAXLIM
-          ELSE IF (LABEL=="TRANSVEL") THEN
-            READ(BUFFER,*,IOSTAT=IOS) TRANSVEL
+          ELSE IF (LABEL=="BOOSTTR") THEN
+            READ(BUFFER,*,IOSTAT=IOS) BOOSTTR
           ELSE IF (LABEL=="TVELMAXLIM") THEN
             READ(BUFFER,*,IOSTAT=IOS) TVELMAXLIM
+          ELSE IF (LABEL=="PRETAUHYDRO") THEN
+            READ(BUFFER,*,IOSTAT=IOS) PRETAUHYDRO
           !ELSE IF (LABEL=="GRIDN") THEN
             !READ(BUFFER,*,IOSTAT=IOS) GRIDN
           ELSE IF (LABEL=="INITVTXF") THEN
             READ(BUFFER,*,IOSTAT=IOS) INITVTXF
+          ! JEWEL original boost (longitudinal) as user option
+          ELSE IF (LABEL=="BOOSTZ") THEN
+            READ(BUFFER,*,IOSTAT=IOS) boost
           ELSE IF (LABEL=="BREAL") THEN
             READ(BUFFER,*,IOSTAT=IOS) breal
 
@@ -263,10 +270,12 @@ C--read settings from file
       write(logfid,*)'GLOBALLIMS  = ',GLOBALLIMS
       write(logfid,*)'MIDRAPLIM   = ',MIDRAPLIM
       write(logfid,*)'TMAXLIM     = ',TMAXLIM
-      write(logfid,*)'TRANSVEL    = ',TRANSVEL
+      write(logfid,*)'BOOSTTR    = ',BOOSTTR
       write(logfid,*)'TVELMAXLIM  = ',TVELMAXLIM
+      write(logfid,*)'PRETAUHYDRO = ',PRETAUHYDRO
       !write(logfid,*)'GRIDN       = ',GRIDN
       write(logfid,*)'INITVTXF    = ',INITVTXF
+      write(logfid,*)'BOOSTZ      = ',boost
       write(logfid,*)
       write(logfid,*)
       write(logfid,*)
@@ -282,7 +291,7 @@ C--read settings from file
         write(logfid,*)
       end if
 
-      if (.not. TRANSVEL) then
+      if (.not. BOOSTTR) then
         TVELMAXLIM = 0.d0 
         write(logfid,*) 'No transverse u => TVELMAXLIM = 0'
         write(logfid,*)
@@ -538,10 +547,10 @@ C--max rapidity
       DATA PI/3.141592653589793d0/
       double precision gettempmax
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL, 
-     &GLOBALLIMS
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR, 
+     &GLOBALLIMS, PRETAUHYDRO
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
-      LOGICAL TRANSVEL, GLOBALLIMS
+      LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
 C--local variables
       double precision px,py,pz,e,getmsmax,m,ys
       
@@ -693,6 +702,11 @@ C--max rapidity
       double precision etamax2
       common/temperature/tempfac
       double precision tempfac
+C--hydrodynamic quantities
+            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR, 
+     &      GLOBALLIMS, PRETAUHYDRO
+            DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
+            LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
 C--local variables
       DOUBLE PRECISION X4,Y4,Z4,T4,TAU,NPART,EPS0,EPSIN,TEMPIN,PI,
      &NTHICK,ys,MEDPART,interpolate
@@ -705,7 +719,7 @@ C--local variables
 
       TAU=SQRT(T4**2-Z4**2)
       ! NO ASSUMPTION BEFORE TAU0
-      if (tau.lt.TAUMIN-0.001) return
+      if ((tau.lt.TAUMIN-0.001) .and. (.not.PRETAUHYDRO)) return
 
       ! Consider only relevant regions for calculation
       ! otherwise temp = 0 => prob of interaction = 0
@@ -741,13 +755,13 @@ C--local variables
             INTEGER A
             LOGICAL WOODSSAXON,MODMED,MEDFILELIST
 C--hydrodynamic quantities
-            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL, 
-     &      GLOBALLIMS
+            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR, 
+     &      GLOBALLIMS, PRETAUHYDRO
             DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
-            LOGICAL TRANSVEL, GLOBALLIMS
+            LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
 
             getu = 0.d0
-            IF (TRANSVEL .eqv. .false.) then
+            IF (BOOSTTR .eqv. .false.) then
               RETURN
             END IF
             tau = sqrt(t**2 - z**2)
@@ -775,13 +789,13 @@ C--hydrodynamic quantities
             INTEGER A
             LOGICAL WOODSSAXON,MODMED,MEDFILELIST
 C--hydrodynamic quantities
-            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL, 
-     &      GLOBALLIMS
+            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR, 
+     &      GLOBALLIMS, PRETAUHYDRO
             DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
-            LOGICAL TRANSVEL, GLOBALLIMS
+            LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
 
             getutheta = 0.d0
-            IF (TRANSVEL .eqv. .false.) then
+            IF (BOOSTTR .eqv. .false.) then
               RETURN
             END IF
 
@@ -907,10 +921,10 @@ C--medium parameters
 C--function call
       DOUBLE PRECISION GETTEMP
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL, 
-     &GLOBALLIMS
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR, 
+     &GLOBALLIMS, PRETAUHYDRO
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
-      LOGICAL TRANSVEL, GLOBALLIMS
+      LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
       
       !GETTEMPMAX=GETTEMP(0.D0,0.D0,0.D0,TAUI)
       !write(*,*) "Max temp:", tempmaximum
@@ -1133,10 +1147,10 @@ C--local variables
       double precision PI
       DATA PI/3.141592653589793d0/
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, TRANSVEL, 
-     &GLOBALLIMS
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR, 
+     &GLOBALLIMS, PRETAUHYDRO
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
-      LOGICAL TRANSVEL, GLOBALLIMS
+      LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
 C--grid parameters
       common/gridpar/ gdt,gdx,gxmax,gxmin,gnx,gny,gnt
       double precision gdt,gdx,gxmax,gxmin,s
@@ -1185,7 +1199,7 @@ C--as well as its highest temperature
               ltime=.false.
 
               ! Calculate other limts
-              if (TRANSVEL .eqv. .true.) then
+              if (BOOSTTR .eqv. .true.) then
                 cvel = u(kk, kkk, k)
               else 
                 cvel = 0
@@ -1273,10 +1287,10 @@ C--as well as its highest temperature
       write(*,*) "Lowest effective density = ", densityminimum
 
       WRITE(*,*) "Temperature profile read succesfully :)"
-      
-
+      WRITE(*,*) 
 
       END
+
 
       DOUBLE PRECISION FUNCTION MEDPART(X4,Y4,Z4,T4)
       IMPLICIT NONE

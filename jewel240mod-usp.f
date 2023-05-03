@@ -6912,6 +6912,8 @@ C--calculate upper limit for density*cross section
 	NEFFMAX=GETNEFFMAX()
 	NEFFMIN=GETNATMDMIN()
 	LINVMAX=5.d0*MAX(NEFFMIN*SIGMAMAX,NEFFMAX*SIGMAMIN)
+
+
 	if(linvmax.eq.0.d0) return
 
 	DO 333 I=1,1000000
@@ -6947,11 +6949,8 @@ C--calculate upper limit for density*cross section
 	  SIGMA=0.d0
 	 ENDIF
 	 WEIGHT=5.d0*NEFF*SIGMA/LINVMAX
-         IF(WEIGHT.GT.2d0+1d-6) then 
+         IF(WEIGHT.GT.1d0+1d-6) then 
            if (line.ne.errl) then 
-             !There are an issue with the weight given the limit calc
-             !Signal if weight > 2 but weight > 1 is still a rare
-             !occurrence
              write(logfid,*)'error in GETDELTAT: weight > 1',WEIGHT,
      &   NEFF*SIGMA/(NEFFMAX*SIGMAMIN),NEFF*SIGMA/(NEFFMIN*SIGMAMAX),
      &       p(line,4)
@@ -6959,15 +6958,13 @@ C--calculate upper limit for density*cross section
      &SIGMA/SIGMAMAX
              write(logfid, *) "NEFF / NEFFLIM: ", NEFF/NEFFMIN,
      &NEFF/NEFFMAX
-             write(logfid, *) "Position: ", XS, YS, ZS, TS
-             write(logfid, *) "Momentum: ", P(LINE,4), P(LINE,1),
+             write(logfid, *) "4-Position: ", TS, XS, YS, ZS
+             write(logfid, *) "4-Momentum: ", P(LINE,4), P(LINE,1),
      &P(LINE,2), P(LINE,3)
              write(logfid, *) "Rap: ", 0.5*log((TS+ZS)/(TS-ZS))
              write(logfid, *) "Outside max rap: ", (sinh(etamax) <
      &abs(ZS) / sqrt(TS ** 2 - ZS ** 2))
              write(logfid, *) "UZ: ", abs(ZS) / sqrt(TS ** 2 - ZS ** 2)
-             write(logfid, *) "This should never happen. Something is
-     &wrong with the limits. Ignore for now."
              write(logfid, *)
 	     errl=line
 	   endif
