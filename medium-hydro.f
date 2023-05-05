@@ -349,7 +349,7 @@ C--medium parameters
           zval = pyr(0) * maxval(vtxmap)
 
           ! Consider only a 10 fm by 10 fm (k = 250, 583)
-          ! since anywhere else won't have entropy (PbPb)
+          ! since anywhere else wont have entropy (PbPb)
           maxpos = 583
           minpos = 250
 
@@ -724,7 +724,7 @@ C--local variables
       ! Consider only relevant regions for calculation
       ! otherwise temp = 0 => prob of interaction = 0
       ys = 0.5d0 * log((T4 + Z4) / (T4 - Z4))
-      if (ys.gt.etamax2) return
+      if (abs(ys).gt.etamax2) return
 
       ! Grid values are between -25 and 25
       if ((abs(X4).gt.25.d0) .or. (abs(Y4).gt.25.d0)) return
