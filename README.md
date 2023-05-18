@@ -1,5 +1,5 @@
 # USP-JEWEL
-JEWEL modification coupled with realistic hydrodynamic (vUSP-hydro)
+Jet propagation (currently done using a modification of JEWEL) in realistic viscous hydrodynamics modeled using vUSPhydro
 
 ---
 
