@@ -58,7 +58,7 @@ C++ but WITHOUT ANY WARRANTY; without even the implied warranty of  ++
 C++ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the    ++
 C++ GNU General Public License for more details.                    ++
 C++                                                                 ++
-C++ You should have received a copy of the GNU General Public       ++  
+C++ You should have received a copy of the GNU General Public       ++
 C++ License along with this program; if not, write to the Free      ++
 C++ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, ++
 C++ MA 02110-1301 USA                                               ++
@@ -117,7 +117,7 @@ C--geometrical cross section
       COMMON /CROSSSEC/ IMPMAX,CROSS(200,3)
       DOUBLE PRECISION IMPMAX,CROSS
 C--hydrodynamic quantities
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR, 
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR,
      &GLOBALLIMS, PRETAUHYDRO
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
       LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
@@ -175,7 +175,7 @@ C--hydro settings
       MODMED=.TRUE.       ! Deprecated
       MEDFILELIST=.FALSE. ! Deprecated
       GLOBALLIMS = .true. ! Global limits vs JEWEL default impl.
-      ! Extrapolation of soft mid rap lim, +0.1 then tuning 
+      ! Extrapolation of soft mid rap lim, +0.1 then tuning
       ! (see nucl-ex/1612.08966)
       MIDRAPLIM=3.3d0
       TMAXLIM=0.675d0   ! Approx vUSP+TRENTo temp lim (PbPb 5TeV)
@@ -185,7 +185,10 @@ C--hydro settings
       PRETAUHYDRO=.false.
       !GRIDN=834     ! Number of points in grid (per dimension)
       ! Initial vertex map file
-      INITVTXF='/sampa/leonardo/USP-JEWEL/initvertexmap.dat' 
+      INITVTXF='/sampa/leonardo/USP-JEWEL/initvertexmap.dat'
+
+      ! Print program info
+      call printhydroheader(logfid)
 
 
 C--read settings from file
@@ -306,12 +309,12 @@ C--read settings from file
       else if (MIDRAPLIM.lt.etamax2) then
         MIDRAPLIM = etamax2
         write(logfid,*) 'ETAMAX > MIDRAPLIM'
-        write(logfid,*) 'Extrapolating mid-rapidity limit' 
+        write(logfid,*) 'Extrapolating mid-rapidity limit'
         write(logfid,*)
       end if
 
       if (.not. BOOSTTR) then
-        TVELMAXLIM = 0.d0 
+        TVELMAXLIM = 0.d0
         write(logfid,*) 'No transverse u => TVELMAXLIM = 0'
         write(logfid,*)
       end if
@@ -320,7 +323,7 @@ C--Call the modified medium setup
       CALL MYMED()
       write(logfid,*) 'Hydrodynamic profile loaded: ', MEDFILE
       write(logfid,*)
-     
+
       END
 
       SUBROUTINE MEDNEXTEVT
@@ -440,7 +443,7 @@ C--local variables
       ! JEWEL original
       !MS=GETMS(X,Y,Z,T)
       !MD=GETMD(X,Y,Z,T)
-      
+
       MD=GETMD(X,Y,Z,T)
       MS = MD / sqrt(2.)
 
@@ -493,7 +496,7 @@ C--local variables
       !JEWEL original longitudinal boost
       !E   = cosh(ys)*E2 + sinh(ys)*pz2
       !pz  = sinh(ys)*E2 + cosh(ys)*pz2
- 
+
       !Perform boost
       E = E2
       pz = pz2
@@ -519,7 +522,7 @@ C--max rapidity
 C--local variables
       double precision x,y,z,t,px,py,pz,e,getms,m,ys,temp
 
-      !Original JEWEL implementation 
+      !Original JEWEL implementation
       !if (boost) then
       !  ys = 0.5*log((t+z)/(t-z))
       !  if ((z.eq.0.d0).and.(t.eq.0.d0)) ys =0.d0
@@ -529,20 +532,20 @@ C--local variables
       !else
       !  ys = 0.d0
       !endif
-     
+
       !m  = getms(x,y,z,t)
       !e = m*cosh(ys)
       !px = 0.d0
       !py = 0.d0
       !pz = m*sinh(ys)
-     
-      
+
+
       m  = getms(x,y,z,t)
       e = m
       px = 0.d0
       py = 0.d0
       pz = 0.d0
-     
+
       !Apply boost
       call LorentzLocalBoost(e,px,py,pz,x,y,z,t)
 
@@ -566,13 +569,13 @@ C--max rapidity
       DATA PI/3.141592653589793d0/
       double precision gettempmax
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR, 
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR,
      &GLOBALLIMS, PRETAUHYDRO
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
       LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
 C--local variables
       double precision px,py,pz,e,getmsmax,m,ys
-      
+
       !Original JEWEL implementation
       !if (boost) then
       !  ys = etamax2
@@ -590,7 +593,7 @@ C--local variables
       else
         ys = 0.d0
       endif
-      
+
       m = getmsmax()
       e = m * cosh(ys)
       px = 0
@@ -649,31 +652,31 @@ C--max rapidity
 C--   local variables
       DOUBLE PRECISION X3,Y3,Z3,T3,PI,GETTEMP,tau,cosheta
       double precision getu,getutheta
-      double precision umx, umy, umz, umr, umtheta, gam, vp, gamp, 
+      double precision umx, umy, umz, umr, umtheta, gam, vp, gamp,
      &localtemp
       double precision J0, J1, J2, J3, P0, P1, P2, P3, ys
       DATA PI/3.141592653589793d0/
 
       getneff=0.d0
       localtemp = GETTEMP(X3,Y3,Z3,T3)
-      IF ((ABS(Z3).gt.T3) .OR. (localtemp.le.TC)) THEN 
+      IF ((ABS(Z3).gt.T3) .OR. (localtemp.le.TC)) THEN
         RETURN
       END IF
 
       tau = sqrt(t3**2-z3**2)
-      if (boost) then 
+      if (boost) then
         umz = z3 / tau
-      else 
-        umz = 0.d0 
+      else
+        umz = 0.d0
       end if
-      
+
       !Medium 4-velocity
       umr = getu(x3, y3, z3, t3, localtemp)
-      umtheta = getutheta(x3, y3, z3, t3, localtemp) 
+      umtheta = getutheta(x3, y3, z3, t3, localtemp)
       umx = umr * cos(umtheta)
       umy = umr * sin(umtheta)
       gam = sqrt(1 + umr ** 2 + umz ** 2)
-      
+
 
       !cosheta = t3/tau
       GETNEFF=(2.*6.*NF*D3*2./3. + 16.*ZETA3*3./2.)
@@ -686,13 +689,13 @@ C--   local variables
       J2 = getneff * umy
       J3 = getneff * umz
 
-      !Effective density transform as 
+      !Effective density transform as
       !J0 = p_mu J^mu / p0, check nucl-th/0612068
       getneff = (P0 * J0 - P1 * J1 - P2 * J2 - P3 * J3) / P0
 
       END
-      
-      
+
+
 
       DOUBLE PRECISION FUNCTION GETTEMP(X4,Y4,Z4,T4)
       IMPLICIT NONE
@@ -722,7 +725,7 @@ C--max rapidity
       common/temperature/tempfac
       double precision tempfac
 C--hydrodynamic quantities
-            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR, 
+            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR,
      &      GLOBALLIMS, PRETAUHYDRO
             DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
             LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
@@ -761,12 +764,12 @@ C--local variables
             implicit none
             integer np
             double precision x,y,z,t,tau,localtemperature
-            double precision interpol 
+            double precision interpol
             common/grid/timesteps(60),tprofile(834,834,60),
      &      vtxmap(834,834)
             double precision timesteps,tprofile,vtxmap
             common/gridvel/u(834,834,60),utheta(834,834,60)
-            double precision u,utheta           
+            double precision u,utheta
             COMMON/MEDPARAMINT/TAUI,TI,TC,D3,ZETA3,D,
      &      N0,SIGMANN,A,WOODSSAXON,MODMED,MEDFILELIST
             DOUBLE PRECISION TAUI,TI,TC,ALPHA,BETA,GAMMA,D3,ZETA3,D,N0,
@@ -774,7 +777,7 @@ C--local variables
             INTEGER A
             LOGICAL WOODSSAXON,MODMED,MEDFILELIST
 C--hydrodynamic quantities
-            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR, 
+            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR,
      &      GLOBALLIMS, PRETAUHYDRO
             DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
             LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
@@ -795,12 +798,12 @@ C--hydrodynamic quantities
             implicit none
             integer np
             double precision x,y,z,t,tau,localtemperature
-            double precision interpol 
+            double precision interpol
             common/grid/timesteps(60),tprofile(834,834,60),
      &      vtxmap(834,834)
             double precision timesteps,tprofile,vtxmap
             common/gridvel/u(834,834,60),utheta(834,834,60)
-            double precision u,utheta           
+            double precision u,utheta
             COMMON/MEDPARAMINT/TAUI,TI,TC,D3,ZETA3,D,
      &      N0,SIGMANN,A,WOODSSAXON,MODMED,MEDFILELIST
             DOUBLE PRECISION TAUI,TI,TC,ALPHA,BETA,GAMMA,D3,ZETA3,D,N0,
@@ -808,7 +811,7 @@ C--hydrodynamic quantities
             INTEGER A
             LOGICAL WOODSSAXON,MODMED,MEDFILELIST
 C--hydrodynamic quantities
-            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR, 
+            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR,
      &      GLOBALLIMS, PRETAUHYDRO
             DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
             LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
@@ -826,7 +829,7 @@ C--hydrodynamic quantities
             return
       end function
 
-      
+
       subroutine LorentzLocalBoost(e, px, py, pz, x, y, z, t)
             implicit none
 C--longitudinal boost of momentum distribution
@@ -835,9 +838,9 @@ C--longitudinal boost of momentum distribution
 C--max rapidity
             common/rapmax2/etamax2
             double precision etamax2
-            double precision fourmom(4,1), fourmomboost(4,1), 
+            double precision fourmom(4,1), fourmomboost(4,1),
      &      boostm(4,4)
-            double precision ux, uy, uz, gam, u2, ux2, uy2, uz2, 
+            double precision ux, uy, uz, gam, u2, ux2, uy2, uz2,
      &      unorm, uangle, tau
             double precision getu,getutheta
 C--local variables
@@ -850,7 +853,7 @@ C--local variables
 
             ! Note that all 4-velocity components must be flipped
             ! since they are defined in the lab frame, thus the frame
-            ! must be boosted as -u so the scattering centers are 
+            ! must be boosted as -u so the scattering centers are
             ! boosted as u.
             if (tau.gt.0.d0 .and. boost) then
               uz = -z / tau
@@ -862,11 +865,11 @@ C--local variables
             if (abs(uz).gt.sinh(etamax2)) then
               if (z.gt.0d0) then
                 uz = -sinh(etamax2)
-              else 
+              else
                 uz = sinh(etamax2)
               end if
             end if
-            
+
             ! Only transform if there is velocity
             if (unorm.gt.0.d0 .or. abs(uz).gt.0.d0) then
               ux = -unorm * cos(uangle)
@@ -898,7 +901,7 @@ C--local variables
               boostm(3,2) = (gam - 1) * uy * ux / u2
               boostm(3,3) = 1 + (gam - 1) * uy2 / u2
               boostm(3,4) = (gam - 1) * uy * uz / u2
-            
+
               boostm(4,1) = -uz
               boostm(4,2) = (gam - 1) * ux * uz / u2
               boostm(4,3) = (gam - 1) * uy * uz / u2
@@ -906,13 +909,13 @@ C--local variables
 
               ! Calculate new four-momentum
               fourmomboost = matmul(boostm, fourmom)
-              e = fourmomboost(1,1) 
-              px = fourmomboost(2,1) 
-              py = fourmomboost(3,1) 
-              pz = fourmomboost(4,1) 
+              e = fourmomboost(1,1)
+              px = fourmomboost(2,1)
+              py = fourmomboost(3,1)
+              pz = fourmomboost(4,1)
             end if
 
-      end subroutine 
+      end subroutine
 
 
 
@@ -940,11 +943,11 @@ C--medium parameters
 C--function call
       DOUBLE PRECISION GETTEMP
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR, 
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR,
      &GLOBALLIMS, PRETAUHYDRO
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
       LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
-      
+
       !GETTEMPMAX=GETTEMP(0.D0,0.D0,0.D0,TAUI)
       !write(*,*) "Max temp:", tempmaximum
       GETTEMPMAX=TMAXLIM
@@ -1110,11 +1113,11 @@ C--local variables
       DOUBLE PRECISION PI,GETTEMPMAX
       double precision J0, JR, J3, P0, P1, P2, P3, PR, gamtot
       DATA PI/3.141592653589793d0/
-     
+
       GETNEFFMAX = DENSITYMAXIMUM
       END
 
-      
+
 
       SUBROUTINE MYMED()
       IMPLICIT NONE
@@ -1153,7 +1156,7 @@ C--local variables
       !common/gridvel/ux(834,834,60),uy(834,834,60)
       !double precision ux,uy
       common/gridvel/u(834,834,60),utheta(834,834,60)
-      double precision u,utheta           
+      double precision u,utheta
       double precision gridx(834,834),gridy(834,834)
       CHARACTER DUMMIE,CONTENT*100
       DOUBLE PRECISION tempsum,entropy
@@ -1166,7 +1169,7 @@ C--local variables
       double precision PI
       DATA PI/3.141592653589793d0/
 C--hydrodynamic limits
-      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR, 
+      COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR,
      &GLOBALLIMS, PRETAUHYDRO
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
       LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
@@ -1193,7 +1196,7 @@ C--grid parameters
 
         end do
       end do
-      
+
       call reader(medfile,834,60,timesteps,tprofile,u,utheta)
 
       call read_initvtx(834, tprofile, vtxmap)
@@ -1209,20 +1212,20 @@ C--as well as its highest temperature
 
       ! TAU0 is k = 2, k = 1 is a matrix of zeros
       TAUMIN = timesteps(2)
-      do k=2,60      
+      do k=2,60
         ltime=.true.
-      
+
         do kk=1,NX
-          do kkk=1,NX 
+          do kkk=1,NX
             if(tprofile(kk,kkk,k).ge.tc) then
               ltime=.false.
 
               ! Calculate other limts
               if (BOOSTTR .eqv. .true.) then
                 cvel = u(kk, kkk, k)
-              else 
+              else
                 cvel = 0
-              end if 
+              end if
 
               if (cvel.gt.velmaximum) then
                 velmaximum = cvel
@@ -1236,7 +1239,7 @@ C--as well as its highest temperature
 
           enddo
         enddo
-     
+
         write(*,*) "Ltime:",ltime
 
         if(.not.ltime.and.timesteps(k+1).gt.timesteps(k)) then
@@ -1255,17 +1258,17 @@ C--as well as its highest temperature
         write(logfid,*) 'Maximum trans u for hydro profile > TVELMAXLIM'
         write(logfid,*) 'Extrapolating trans u limit'
         write(logfid,*)
-      end if 
+      end if
 
 
       write(*,*)
 
       ! Define limits
       if (.not. GLOBALLIMS) then
-        write(logfid,*) 'Using "medium profile-global" limits' 
-        write(logfid,*) 'Similar to JEWEL original impl. (vs global)' 
+        write(logfid,*) 'Using "medium profile-global" limits'
+        write(logfid,*) 'Similar to JEWEL original impl. (vs global)'
         write(logfid,*) 'This could result in GETDELTAT weight errors'
-        
+
         TMAXLIM = hightemp
         TVELMAXLIM = velmaximum
 
@@ -1276,9 +1279,9 @@ C--as well as its highest temperature
         write(logfid,*) 'TMAXLIM = ', TMAXLIM
         write(logfid,*) 'TVELMAXLIM = ', TVELMAXLIM
         write(logfid,*) 'MIDRAPLIM = ', MIDRAPLIM
-        write(logfid,*) 
+        write(logfid,*)
       end if
-        
+
       ! Setup global density limits
       ! neff = n * p_mu u^mu / p0, check GETNEFF
       ! neff_max is highest at tau0 (ux = uy = 0)
@@ -1289,10 +1292,10 @@ C--as well as its highest temperature
       densconst = (2.*6.*NF*D3*2./3. + 16.*ZETA3*3./2.)/PI**2
 
       densitymaximum = densconst * TMAXLIM ** 3 *
-     &(sqrt(1 + sinh(MIDRAPLIM) ** 2) + sinh(MIDRAPLIM)) 
+     &(sqrt(1 + sinh(MIDRAPLIM) ** 2) + sinh(MIDRAPLIM))
 
       densityminimum = densconst * TC ** 3 *
-     &(sqrt(1 + maxu ** 2) - maxu) 
+     &(sqrt(1 + maxu ** 2) - maxu)
 
       write(*,*)
       write(*,*) "TAU max (for limits)= ", timesteps(nt - 1)
@@ -1300,13 +1303,13 @@ C--as well as its highest temperature
       write(*,*) "Highest u_r = ", velmaximum
       write(*,*) "Highest gamma_r = ", gammamaximum
       write(*,*) "Highest u (with Bjorken) = ", maxu
-      write(*,*) "Highest gamma (with Bjorken) = ", sqrt(1 + 
+      write(*,*) "Highest gamma (with Bjorken) = ", sqrt(1 +
      &maxu ** 2)
       write(*,*) "Highest effective density = ", densitymaximum
       write(*,*) "Lowest effective density = ", densityminimum
 
       WRITE(*,*) "Temperature profile read succesfully :)"
-      WRITE(*,*) 
+      WRITE(*,*)
 
       END
 
@@ -1355,7 +1358,7 @@ C--variables for integration
       IF (W.EQ.1) THEN
 C--XVAL corresponds to z-coordinate
        MEDDERIV=N0/(1+EXP((SQRT(B**2+XVAL**2)-R)/D))
-      ELSE 
+      ELSE
        MEDDERIV=0.D0
       ENDIF
       END
@@ -1390,3 +1393,57 @@ C--XVAL corresponds to z-coordinate
       END
 
 
+      subroutine printhydroheader(fid)
+      IMPLICIT NONE
+      integer fid, i
+      character(80) :: lines(17)
+
+      lines(1) = '++++++++++++++++++++++++++++++++++++++++++++++++++++++
+     &++++++++++++++++'
+      lines(2) = '++                            USP-JEWEL
+     &              ++'
+      lines(3) = '++
+     &              ++'
+      lines(4) = '++ This program is an interface between the parton pro
+     &pagation of   ++'
+      lines(5) = '++ JEWEL and an external hydrodynamic 2+1D medium prof
+     &ile.          ++'
+      lines(6) = '++
+     &              ++'
+      lines(7) = '++ It is an unofficial modoficiation of the original J
+     &EWEL          ++'
+      lines(8) = '++ program. The original JEWEL team does not hold any 
+     &responsibity  ++'
+      lines(9) = '++ regarding it.
+     &              ++'
+      lines(10) = '++
+     &               ++'
+      lines(11) = '++
+     &               ++'
+      lines(12) = '++ Created by:
+     &               ++'
+      lines(13) = '++  - Fabio M. Canedo [fabio.canedo@usp.br]
+     &               ++'
+      lines(14) = '++  - Leonardo Barreto [leonardo.barreto.campos@usp.b
+     &r]             ++'
+      lines(15) = '++  Instituto de Fisica, Universidade de Sao Paulo, B
+     &razil          ++'
+      lines(16) = '++  2019
+     &               ++'
+      lines(17) = '+++++++++++++++++++++++++++++++++++++++++++++++++++++
+     &+++++++++++++++++'
+
+      write(*,*)
+      write(fid,*)
+
+      do i = 1, 17
+        write(*, *) lines(i)
+        write(fid, *) lines(i)
+      end do
+
+      write(*,*)
+      write(*,*)
+      write(fid,*)
+      write(fid,*)
+
+      end
