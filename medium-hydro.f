@@ -1,4 +1,23 @@
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+C++                            USP-JEWEL                            ++
+C++                                                                 ++
+C++ This file is an unofficial modification of the original         ++
+C++ JEWEL program (copyright header below). The original JEWEL team ++
+C++ does not hold any responsibility regarding it.                  ++
+C++                                                                 ++
+C++ The program is part of the developted interface between the     ++
+C++ parton propagation of JEWEL and an external hydrodynamic 2+1D   ++
+C++ medium profile.                                                 ++
+C++                                                                 ++
+C++                                                                 ++
+C++ Created by:                                                     ++
+C++  - Fabio M. Canedo [fabio.canedo@usp.br]                        ++
+C++  - Leonardo Barreto [leonardo.barreto.campos@usp.br]            ++
+C++  Instituto de Fisica, Universidade de Sao Paulo, Brazil         ++
+C++  2019                                                           ++
+C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C++ Copyright (C) 2017 Korinna C. Zapp [Korinna.Zapp@cern.ch]       ++
 C++                                                                 ++
 C++ This file is part of JEWEL 2.2.0                                ++

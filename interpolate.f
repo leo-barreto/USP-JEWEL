@@ -1,3 +1,19 @@
+C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+C++                            USP-JEWEL                            ++
+C++                                                                 ++
+C++ The program is part of the developted interface between the     ++
+C++ parton propagation of JEWEL and an external hydrodynamic 2+1D   ++
+C++ medium profile.                                                 ++
+C++                                                                 ++
+C++ This code implements an interpolation function estimate a       ++
+C++ value based on input coordinate (X4,Y4,T4) and a grid tprofile. ++
+C++                                                                 ++
+C++                                                                 ++
+C++ Created by:                                                     ++
+C++  - Fabio M. Canedo [fabio.canedo@usp.br]                        ++
+C++  Instituto de Fisica, Universidade de Sao Paulo, Brazil         ++
+C++  2019                                                           ++
+C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       DOUBLE PRECISION FUNCTION INTERPOLATE(X4,Y4,T4)
       IMPLICIT NONE
       INTEGER NX,NY,NT,NF

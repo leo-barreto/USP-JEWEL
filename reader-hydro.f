@@ -1,8 +1,20 @@
-C++   This is a library built to read external medium profiles ++
-C++   for JEWEL                                                ++
-
-C++   This is the main subroutine that performs the reading    ++
-C++                                                            ++
+C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+C++                            USP-JEWEL                            ++
+C++                                                                 ++
+C++ The program is part of the developted interface between the     ++
+C++ parton propagation of JEWEL and an external hydrodynamic 2+1D   ++
+C++ medium profile.                                                 ++
+C++                                                                 ++
+C++ This code implements multiple auxiliary functions for reading   ++
+C++ and interpolating data of a medium profile.                     ++
+C++                                                                 ++
+C++                                                                 ++
+C++ Created by:                                                     ++
+C++  - Fabio M. Canedo [fabio.canedo@usp.br]                        ++
+C++  - Leonardo Barreto [leonardo.barreto.campos@usp.br]            ++
+C++  Instituto de Fisica, Universidade de Sao Paulo, Brazil         ++
+C++  2019                                                           ++
+C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       subroutine reader(filename,np,nt,timesteps,tprofile,u,theta)
       implicit none
       integer i,j,k
@@ -81,8 +93,6 @@ C++                                                            ++
 C--hydro auxiliary files
       COMMON /HYDROF/ INITVTXF 
       CHARACTER*200 INITVTXF 
-
-      !rfile='/sampa/leonardo/USP-JEWEL/initvertexmap.dat'
 
 
       ! Load initial vertex map from INITVTXF
