@@ -3,7 +3,7 @@ C++                            USP-JEWEL                            ++
 C++                                                                 ++
 C++ The program is part of the developted interface between the     ++
 C++ parton propagation of JEWEL and an external hydrodynamic 2+1D   ++
-C++ medium profile.                                                 ++
+C++ medium profile, intended for v-USPhydro.                        ++
 C++                                                                 ++
 C++ This code implements multiple auxiliary functions for reading   ++
 C++ and interpolating data of a medium profile.                     ++

@@ -7,7 +7,7 @@ C++ does not hold any responsibility regarding it.                  ++
 C++                                                                 ++
 C++ The program is part of the developted interface between the     ++
 C++ parton propagation of JEWEL and an external hydrodynamic 2+1D   ++
-C++ medium profile.                                                 ++
+C++ medium profile, intended for v-USPhydro.                        ++
 C++                                                                 ++
 C++                                                                 ++
 C++ Created by:                                                     ++
