@@ -5,7 +5,7 @@ C++ This file is an unofficial modification of the original         ++
 C++ JEWEL program (copyright header below). The original JEWEL team ++
 C++ does not hold any responsibility regarding it.                  ++
 C++                                                                 ++
-C++ The program is part of the developted interface between the     ++
+C++ The program is part of the developed interface between the      ++
 C++ parton propagation of JEWEL and an external hydrodynamic 2+1D   ++
 C++ medium profile, intended for v-USPhydro.                        ++
 C++                                                                 ++

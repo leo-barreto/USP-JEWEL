@@ -1,7 +1,7 @@
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C++          JEWEL Add-On to Read v-USPhydro 2+1D Profiles          ++
 C++                                                                 ++
-C++ The program is part of the developted interface between the     ++
+C++ The program is part of the developed interface between the      ++
 C++ parton propagation of JEWEL and an external hydrodynamic 2+1D   ++
 C++ medium profile, intended for v-USPhydro.                        ++
 C++                                                                 ++
@@ -14,6 +14,7 @@ C++  - Fabio M. Canedo [fabio.canedo@usp.br]                        ++
 C++  Instituto de Fisica, Universidade de Sao Paulo, Brazil         ++
 C++  2019                                                           ++
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
       DOUBLE PRECISION FUNCTION INTERPOLATE(X4,Y4,T4)
       IMPLICIT NONE
       INTEGER NX,NY,NT,NF
