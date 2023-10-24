@@ -1,5 +1,5 @@
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-C++                            USP-JEWEL                            ++
+C++          JEWEL Add-On to Read v-USPhydro 2+1D Profiles          ++
 C++                                                                 ++
 C++ This file is an unofficial modification of the original         ++
 C++ JEWEL program (copyright header below). The original JEWEL team ++

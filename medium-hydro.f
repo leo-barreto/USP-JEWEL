@@ -1,5 +1,5 @@
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-C++                            USP-JEWEL                            ++
+C++          JEWEL Add-On to Read v-USPhydro 2+1D Profiles          ++
 C++                                                                 ++
 C++ This file is an unofficial modification of the original         ++
 C++ JEWEL program (copyright header below). The original JEWEL team ++
@@ -1400,8 +1400,8 @@ C--XVAL corresponds to z-coordinate
 
       lines(1) = '++++++++++++++++++++++++++++++++++++++++++++++++++++++
      &++++++++++++++++'
-      lines(2) = '++                            USP-JEWEL
-     &              ++'
+      lines(2) = '++          JEWEL Add-On to Read v-USPhydro 2+1D Profi
+     &les           ++'
       lines(3) = '++
      &              ++'
       lines(4) = '++ This program is an interface between the parton pro
@@ -1412,7 +1412,7 @@ C--XVAL corresponds to z-coordinate
      &              ++'
       lines(7) = '++ It is an unofficial modoficiation of the original J
      &EWEL          ++'
-      lines(8) = '++ program. The original JEWEL team does not hold any 
+      lines(8) = '++ program. The original JEWEL team does not hold any
      &responsibity  ++'
       lines(9) = '++ regarding it.
      &              ++'

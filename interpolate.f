@@ -1,5 +1,5 @@
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-C++                            USP-JEWEL                            ++
+C++          JEWEL Add-On to Read v-USPhydro 2+1D Profiles          ++
 C++                                                                 ++
 C++ The program is part of the developted interface between the     ++
 C++ parton propagation of JEWEL and an external hydrodynamic 2+1D   ++
