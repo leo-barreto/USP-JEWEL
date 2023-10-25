@@ -594,6 +594,7 @@ C--default settings
 	MSTU(11)=logfid
 
 	call printtime
+	call printhydrologo(logfid)
 	call printlogo(logfid)
 
 
@@ -7941,3 +7942,62 @@ C--local variables
 	write(logfid,1000)date,time
 	end
 
+
+      subroutine printhydrologo(fid)
+      IMPLICIT NONE
+      integer fid, i
+      character(80) :: lines(19)
+
+      lines(1) = '++++++++++++++++++++++++++++++++++++++++++++++++++++++
+     &++++++++++++++++'
+      lines(2) = '++          JEWEL Add-On to Read v-USPhydro 2+1D Profi
+     &les           ++'
+      lines(3) = '++
+     &              ++'
+      lines(4) = '++ This version of JEWEL 2.4.0 was modified to run wit
+     &h an external ++'
+      lines(5) = '++ 2+1D hydro interface, intended for v-USPhydro. It i
+     &s not an      ++'
+      lines(6) = '++ official release of JEWEL and may not be used for a
+     &nything else. ++'
+      lines(7) = '++                                                    
+     &              ++'
+      lines(8) = '++ Modifications with respect to the official JEWEL ve
+     &rsion:        ++'
+      lines(9) = '++ * The GETNEFF function uses both the medium 4-veloc
+     &ity and       ++'
+      lines(10) = '++   travelling parton 4-momentum as arguments.      
+     &               ++'
+      lines(11) = '++ * Minor changes in outputs/log entries for testing
+     &.              ++'
+      lines(12) = '++
+     &               ++'
+      lines(13) = '++
+     &               ++'
+      lines(14) = '++ Created by:
+     &               ++'
+      lines(15) = '++  - Fabio M. Canedo [fabio.canedo@usp.br]
+     &               ++'
+      lines(16) = '++  - Leonardo Barreto [leonardo.barreto.campos@usp.b
+     &r]             ++'
+      lines(17) = '++  Instituto de Fisica, Universidade de Sao Paulo, B
+     &razil          ++'
+      lines(18) = '++  2019
+     &               ++'
+      lines(19) = '+++++++++++++++++++++++++++++++++++++++++++++++++++++
+     &+++++++++++++++++'
+
+      write(*,*)
+      write(fid,*)
+
+      do i = 1, 19
+        write(*, *) lines(i)
+        write(fid, *) lines(i)
+      end do
+
+      write(*,*)
+      write(*,*)
+      write(fid,*)
+      write(fid,*)
+
+      end
