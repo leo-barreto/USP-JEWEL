@@ -1,0 +1,9 @@
+pythia*
+meix.f
+usp-jewel
+*.o
+*.dat
+*.hepm
+*.log
+*.swp
+user/*

@@ -185,7 +185,7 @@ C--hydro settings
       PRETAUHYDRO=.false.
       !GRIDN=834     ! Number of points in grid (per dimension)
       ! Initial vertex map file
-      INITVTXF='/sampa/leonardo/USP-JEWEL/initvertexmap.dat'
+      INITVTXF='initvertexmap.dat'
 
       ! Print program info
       call printhydroheader(logfid)
@@ -1410,7 +1410,7 @@ C--XVAL corresponds to z-coordinate
      &ile.          ++'
       lines(6) = '++
      &              ++'
-      lines(7) = '++ It is an unofficial modoficiation of the original J
+      lines(7) = '++ It is an unofficial modificiation of the original J
      &EWEL          ++'
       lines(8) = '++ program. The original JEWEL team does not hold any
      &responsibity  ++'
