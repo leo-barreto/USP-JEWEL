@@ -1,0 +1,14 @@
+NEVENT 100 
+PTMIN 30.d0
+PTMAX 1200.d0
+ETAMAX 1.5
+WEIGHTED T
+KEEPRECOILS T
+HADRO T
+SHORTHEPMC T
+WRITESCATCEN T
+WRITEDUMMIES T                                                          
+SQRTS 5020.
+WEXPO 5.D0
+PDFSET 904400
+MEDIUMPARAMS medium_params_example.dat
