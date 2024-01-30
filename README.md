@@ -38,10 +38,10 @@ export LHAPATH=/path/lhapdf/share/lhapdf
 ```
 
 ### Running the example
-Let's see if everything is setup correctly by running an example. The folder `example/` has parameters files for the JEWEL (`params_example.dat` and the medium `medium_params_example.dat` (similar to original JEWEL), and a *$$\rm T_R ENT_O$$+v-USPhydro* PbPb 0-10% 5.02 TeV medium profile. For this test, the nuclear PDF *EPPS21nlo_CT18Anlo_Pb208* (referenced by the parameter `PDFSET 904400`) must be provided by LHAPDF (get it from [here](https://lhapdf.hepforge.org/pdfsets.html) and follow LHAPDF set up instructions). The file is rather large so be sure to decompress it (should be .dat file!) before usage. 
+Let's see if everything is setup correctly by running an example. The folder `example/` has parameters files for the JEWEL (`params_example.dat` and the medium `medium_params_example.dat` (similar to original JEWEL), and a *TReNTov-USPhydro* PbPb 0-10% 5.02 TeV medium profile. For this test, the nuclear PDF *EPPS21nlo_CT18Anlo_Pb208* (referenced by the parameter `PDFSET 904400`) must be provided by LHAPDF (get it from [here](https://lhapdf.hepforge.org/pdfsets.html) and follow LHAPDF set up instructions). The file is rather large so be sure to decompress it (should be .dat file!) before usage. 
 
 ```bash
-cd user/
+cd example/
 unxz 0-10_example.dat.xz
 .././usp-jewel params_example.dat
 ```
