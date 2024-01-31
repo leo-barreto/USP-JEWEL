@@ -13,6 +13,8 @@ Disclaimers:
 - [LHAPDF 6](https://lhapdf.hepforge.org/install.html) and desired PDF sets.
 - [JEWEL 2.4.0 source code](https://jewel.hepforge.org/downloads/).
 
+Although is not necessary, we recommend having a working version of JEWEL 2.4.0 installed, as most of the instructions for installing the presented modification overlaps with the original one.
+
 ### Set up
 1. Clone this repository and add the following original JEWEL `meix.f` and `pythia6425mod-lhapdf6.f` files to the repo directory, as we do not distribute those,
 
@@ -38,7 +40,9 @@ export LHAPATH=/path/lhapdf/share/lhapdf
 ```
 
 ### Running the example
-Let's see if everything is setup correctly by running an example. The folder `example/` has parameters files for the JEWEL (`params_example.dat` and the medium `medium_params_example.dat` (similar to original JEWEL), and a *TReNTov-USPhydro* PbPb 0-10% 5.02 TeV medium profile. For this test, the nuclear PDF *EPPS21nlo_CT18Anlo_Pb208* (referenced by the parameter `PDFSET 904400`) must be provided by LHAPDF (get it from [here](https://lhapdf.hepforge.org/pdfsets.html) and follow LHAPDF set up instructions). The file is rather large so be sure to decompress it (should be .dat file!) before usage. 
+Let's see if everything is setup correctly by running an example. The folder `example/` has parameters files for the JEWEL (`params_example.dat` and the medium `medium_params_example.dat` (similar to original JEWEL), and a *TReNTo+vUSPhydro* PbPb 0-10% 5.02 TeV medium profile. The file is rather large so be sure to decompress it (should be .dat file!) before usage.
+
+For this test, a nuclear PDF must be provided by LHAPDF, e.g. *EPPS21nlo_CT18Anlo_Pb208* (referenced by the parameter `PDFSET 904400` in `params_example.dat`). It can be obtained from [here](https://lhapdf.hepforge.org/pdfsets.html) and the test will work for any other PDF set as long as the parameter file is modified accordingly.
 
 ```bash
 cd example/
