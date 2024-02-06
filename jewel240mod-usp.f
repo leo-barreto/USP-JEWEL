@@ -4597,7 +4597,7 @@ C--boost to fluid rest frame
 	   ! ys = 0.5*log((mv(1,4)+mv(1,3))/(mv(1,4)-mv(1,3)))
 	   ! p3boost = sinh(-ys)*p(n-1,4) + cosh(-ys)*p(n-1,3)
 	   ! pboost = sqrt(p3boost**2+p(n-1,1)**2+p(n-1,2)**2)
-	   ! localt = GETTEMP(MV(1,1),MV(1,2),MV(1,3),MV(1,4))
+	   localt = GETTEMP(MV(1,1),MV(1,2),MV(1,3),MV(1,4))
       
            ! Hydro change
            pxfluidframe = p(n - 1, 1)
@@ -4727,6 +4727,9 @@ C--set the production vertices: x_mother + (tprod - tprod_mother) * beta_mother
 C--store scattering centre before interaction in separate common block
 	 if (writescatcen.and.(.not.rejectt).and.
      &		(nscatcen.lt.maxnscatcen)) then
+
+         ! Hydro temporary change:
+         write(logfid, *) "Recoil info: ", pboost, scmass, 3 * localt
 	   nscatcen = nscatcen+1
 	   if (nscatcen.gt.maxnscatcen) then
 	     write(logfid,*) 
