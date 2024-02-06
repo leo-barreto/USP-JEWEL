@@ -4178,8 +4178,6 @@ C--local variables
      &m32,newm2,shat,theta2,z,gettemp,E3new,E4new,p32,p42,p3old,
      &newm,mass2,enew,pt2,pt,pl,m12,firsttime,pcms2,
      &ys,p3boost,pboost,m42,localt,oldt,precoil,qmass2,pdummy,pproj
-      ! Hydro change
-      double precision ptcompare
       double precision m4,z4,getmass,getms,getmd
       double precision thetasub,phisub,rapsub
       CHARACTER*2 TYP
@@ -4187,6 +4185,9 @@ C--local variables
      &softrec,splitrec,isrecoil
 	DATA PI/3.141592653589793d0/
 	data pdummy/1.d-6/ 
+      ! Hydro change
+      double precision pxfluidframe, pyfluidframe, pzfluidframe,
+     &efluidframe, scmass 
 
       IF((N+2*(n2-n1+1)).GT.22990)THEN
         write(logfid,*)'event too long for event record'
@@ -4592,18 +4593,37 @@ C--transformation to lab
 	   softrec=.false.
 	 else
 C--boost to fluid rest frame
-	   ys = 0.5*log((mv(1,4)+mv(1,3))/(mv(1,4)-mv(1,3)))
-	   p3boost = sinh(-ys)*p(n-1,4) + cosh(-ys)*p(n-1,3)
-	   pboost = sqrt(p3boost**2+p(n-1,1)**2+p(n-1,2)**2)
-	   localt = GETTEMP(MV(1,1),MV(1,2),MV(1,3),MV(1,4))
+           ! JEWEL original
+	   ! ys = 0.5*log((mv(1,4)+mv(1,3))/(mv(1,4)-mv(1,3)))
+	   ! p3boost = sinh(-ys)*p(n-1,4) + cosh(-ys)*p(n-1,3)
+	   ! pboost = sqrt(p3boost**2+p(n-1,1)**2+p(n-1,2)**2)
+	   ! localt = GETTEMP(MV(1,1),MV(1,2),MV(1,3),MV(1,4))
+      
+           ! Hydro change
+           pxfluidframe = p(n - 1, 1)
+           pyfluidframe = p(n - 1, 2)
+           pzfluidframe = p(n - 1, 3)
+           efluidframe = p(n - 1, 4)
+           scmass = p(n - 1, 5)
 
-	   if (pboost.lt.(recsoftcut*3.*localt)) then
+           call LorentzBoostToFluidFrame(efluidframe, pxfluidframe,
+     &pyfluidframe, pzfluidframe, MV(1, 1), MV(1, 2), MV(1, 3),
+     &MV(1, 4))
+
+           pboost = sqrt(pxfluidframe ** 2 + pyfluidframe ** 2 +
+     &pzfluidframe ** 2)
+
+           ! Hydro change: make comparison to mass, not 3T
+           ! mass = 3T * Debye scale factor / sqrt(2), so original can
+           ! be recovered and comparison considers user-defined scale factor
+	   if (pboost.lt.(recsoftcut * scmass)) then
 	     softrec = .true.
 	     k(n-1,1)=13
 	   else
 	     softrec = .false.
 
-           if (scatrecoil.and.(pboost.GT.(rechardcut*3.*localt))) THEN
+           ! Hydro change: same thing here
+           if (scatrecoil.and.(pboost.GT.(rechardcut * scmass))) THEN
 	       K(N-1,1)=2
            else
              K(N-1,1)=3
