@@ -4726,12 +4726,15 @@ C--store scattering centre before interaction in separate common block
 
          ! Hydro temporary change:
          !write(logfid, *) "Recoil info: ", pboost, scmass, 3 * localt
-	   nscatcen = nscatcen+1
+	 if ((recmode.eq.2.) .or. (recmode.eq.3) .or. (.not.softrec)) then
+           nscatcen = nscatcen+1
 	   if (nscatcen.gt.maxnscatcen) then
 	     write(logfid,*) 
      &'WARNING: no room left to store further scattering centres'
          goto 230
 	   endif
+         endif
+
 	   if (recmode.eq.0) then
 	     if (.not.softrec) then
 	       scatflav(nscatcen) = k(1,2)
