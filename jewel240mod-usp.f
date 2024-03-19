@@ -4613,17 +4613,13 @@ C--boost to fluid rest frame
            pboost = sqrt(pxfluidframe ** 2 + pyfluidframe ** 2 +
      &pzfluidframe ** 2)
 
-           ! Hydro change: make comparison to mass, not 3T
-           ! mass = 3T * Debye scale factor / sqrt(2), so original can
-           ! be recovered and comparison considers user-defined scale factor
-	   if (pboost.lt.(recsoftcut * scmass)) then
+	   if (pboost.lt.(recsoftcut*3.*localt)) then
 	     softrec = .true.
 	     k(n-1,1)=13
 	   else
 	     softrec = .false.
 
-           ! Hydro change: same thing here
-           if (scatrecoil.and.(pboost.GT.(rechardcut * scmass))) THEN
+           if (scatrecoil.and.(pboost.GT.(rechardcut*3.*localt))) THEN
 	       K(N-1,1)=2
            else
              K(N-1,1)=3
@@ -4729,7 +4725,7 @@ C--store scattering centre before interaction in separate common block
      &		(nscatcen.lt.maxnscatcen)) then
 
          ! Hydro temporary change:
-         write(logfid, *) "Recoil info: ", pboost, scmass, 3 * localt
+         !write(logfid, *) "Recoil info: ", pboost, scmass, 3 * localt
 	   nscatcen = nscatcen+1
 	   if (nscatcen.gt.maxnscatcen) then
 	     write(logfid,*) 

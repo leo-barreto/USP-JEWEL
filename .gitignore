@@ -5,6 +5,7 @@ usp-jewel
 *.hepm
 *.log
 *.swp
+*.xz
 user/*
 example/pdfs.dat
 example/splitint.dat
