@@ -1,0 +1,125 @@
+405c405
+<       CHARACTER*80 PDFFILE,XSECFILE,FILEMED,FILESPLIT,buffer,
+---
+>       CHARACTER*180 PDFFILE,XSECFILE,FILEMED,FILESPLIT,buffer,
+407,408c407,408
+<       CHARACTER*120 HEPMCFILE,LOGFILE,FILENAME2
+< 	CHARACTER(LEN=100) filename
+---
+>       CHARACTER*220 HEPMCFILE,LOGFILE,FILENAME2
+> 	CHARACTER(LEN=200) filename
+3243,3244c3243,3251
+<       MD1=GETMD(XSC,YSC,ZSC,TSC)
+<       MS1=GETMS(XSC,YSC,ZSC,TSC)
+---
+> 
+>       ! JEWEL original
+>       !MD1=GETMD(XSC,YSC,ZSC,TSC)
+>       !MS1=GETMS(XSC,YSC,ZSC,TSC)
+> 
+>       ! Hydro change for efficiency (to reduce calls of GETTEMP())
+>       MD1 = GETMD(XSC,YSC,ZSC,TSC)
+>       MS1 = MD1 / sqrt(2.)
+>       
+3248c3255
+<      &GETNEFF(XSC,YSC,ZSC,TSC)
+---
+>      &GETNEFF(XSC,YSC,ZSC,TSC,P(L,4),P(L,1),P(L,2), P(L,3))
+4180a4188,4190
+>       ! Hydro change
+>       double precision pxfluidframe, pyfluidframe, pzfluidframe,
+>      &efluidframe, scmass 
+4586,4588c4596,4599
+< 	   ys = 0.5*log((mv(1,4)+mv(1,3))/(mv(1,4)-mv(1,3)))
+< 	   p3boost = sinh(-ys)*p(n-1,4) + cosh(-ys)*p(n-1,3)
+< 	   pboost = sqrt(p3boost**2+p(n-1,1)**2+p(n-1,2)**2)
+---
+>            ! JEWEL original
+> 	   ! ys = 0.5*log((mv(1,4)+mv(1,3))/(mv(1,4)-mv(1,3)))
+> 	   ! p3boost = sinh(-ys)*p(n-1,4) + cosh(-ys)*p(n-1,3)
+> 	   ! pboost = sqrt(p3boost**2+p(n-1,1)**2+p(n-1,2)**2)
+4589a4601,4615
+>       
+>            ! Hydro change
+>            pxfluidframe = p(n - 1, 1)
+>            pyfluidframe = p(n - 1, 2)
+>            pzfluidframe = p(n - 1, 3)
+>            efluidframe = p(n - 1, 4)
+>            scmass = p(n - 1, 5)
+> 
+>            call LorentzBoostToFluidFrame(efluidframe, pxfluidframe,
+>      &pyfluidframe, pzfluidframe, MV(1, 1), MV(1, 2), MV(1, 3),
+>      &MV(1, 4))
+> 
+>            pboost = sqrt(pxfluidframe ** 2 + pyfluidframe ** 2 +
+>      &pzfluidframe ** 2)
+> 
+4594a4621
+> 
+4601c4628,4629
+< 	 endif
+---
+>          endif
+> 
+4698c4726,4730
+< 	   nscatcen = nscatcen+1
+---
+> 
+>          ! Hydro temporary change:
+>          !write(logfid, *) "Recoil info: ", pboost, scmass, 3 * localt
+> 	 if ((recmode.eq.2.) .or. (recmode.eq.3) .or. (.not.softrec)) then
+>            nscatcen = nscatcen+1
+4703a4736,4737
+>          endif
+> 
+6886a6921,6922
+> 
+> 
+6900c6936,6937
+< 	 NEFF=GETNEFF(XS,YS,ZS,TS)
+---
+>          NEFF=GETNEFF(XS,YS,ZS,TS,P(LINE,4), P(LINE,1), P(LINE,2),
+>      &   P(LINE,3))
+6919a6957
+>          
+6921,6927c6959,6990
+< 	 IF(WEIGHT.GT.1.d0+1d-6) then
+< 	   if (line.ne.errl) then
+<      	     write(logfid,*)'error in GETDELTAT: weight > 1',WEIGHT,
+<      &	 NEFF*SIGMA/(NEFFMAX*SIGMAMIN),NEFF*SIGMA/(NEFFMIN*SIGMAMAX),
+<      &       p(line,4)
+< 	     errl=line
+< 	   endif
+---
+>          IF (WEIGHT.GT.1d0+1d-6) then
+>            if (abs(0.5*log((TS+ZS)/(TS-ZS))).lt.1.5) then
+>              ! Hydro change:
+>              ! There seems to be an issue weight > 1 if etamax is close to MIDRAPLIM
+>              ! (for MIDRAPLIM = 3.3, issue appears around rap = 2)
+>              ! It appeared after implementation of boost in neff 
+>              ! (usually when pz \cdot uz < 0 => neff_boostz > neff)
+>              ! and is probably caused by the inconsistency of jets being
+>              ! 3d and our hydro (and JEWEL Default) 2d, it occurs rarely thus
+>              ! should not affect final observables. 
+>              ! Error wont be displayed if |rap| > 1.5 (outside mid rap)
+>              if (line.ne.errl) then 
+>                write(logfid,*)'error in GETDELTAT: weight > 1',WEIGHT,
+>      &NEFF*SIGMA/(NEFFMAX*SIGMAMIN),NEFF*SIGMA/(NEFFMIN*SIGMAMAX),
+>      &p(line,4)
+>                write(logfid, *) "SIGMA / SIGMALIM: ", SIGMA/SIGMAMIN,
+>      &SIGMA/SIGMAMAX
+>                write(logfid, *) "NEFF / NEFFLIM: ", NEFF/NEFFMIN,
+>      &NEFF/NEFFMAX
+>                write(logfid, *) "4-Position: ", TS, XS, YS, ZS
+>                write(logfid, *) "4-Momentum: ", P(LINE,4), P(LINE,1),
+>      &P(LINE,2), P(LINE,3)
+>                write(logfid, *) "Rap: ", 0.5*log((TS+ZS)/(TS-ZS))
+>                write(logfid, *) "Outside max rap: ", (sinh(etamax) <
+>      &abs(ZS) / sqrt(TS ** 2 - ZS ** 2))
+>                write(logfid, *) "UZ: ", ZS / sqrt(TS ** 2 - ZS ** 2)
+>                write(logfid, *) "Neff increase (> 1 => antiparallel) ",
+>      &1 - (P(LINE,3) * ZS / sqrt(TS ** 2 - ZS ** 2) / (P(LINE,4) * TS))
+>                write(logfid, *)
+> 	       errl=line
+> 	     endif
+>            end if
