@@ -493,14 +493,14 @@ C--local variables
 	py  = p*sin(theta)*sin(phi)
 	pz2 = p*cos(theta)
 
-      !JEWEL original longitudinal boost
+      !JEWEL original longitudinal boost, note that boost is using -ys
       !E   = cosh(ys)*E2 + sinh(ys)*pz2
       !pz  = sinh(ys)*E2 + cosh(ys)*pz2
 
       !Perform boost
       E = E2
       pz = pz2
-      call LorentzLocalBoost(E,px,py,pz,x,y,z,t)
+      call LorentzBoostToLabFrame(E,px,py,pz,x,y,z,t)
 
       IF (E.lt.0.d0) THEN
         write(logfid,*) 'Negative energy (', E, ') in GETSCATTERER'
@@ -547,7 +547,7 @@ C--local variables
       pz = 0.d0
 
       !Apply boost
-      call LorentzLocalBoost(e,px,py,pz,x,y,z,t)
+      call LorentzBoostToLabFrame(e,px,py,pz,x,y,z,t)
 
       end
 
@@ -830,7 +830,7 @@ C--hydrodynamic quantities
       end function
 
 
-      subroutine LorentzLocalBoost(e, px, py, pz, x, y, z, t)
+      subroutine LorentzBoostToLabFrame(e, px, py, pz, x, y, z, t)
             implicit none
 C--longitudinal boost of momentum distribution
             common/boostmed/boost
@@ -851,7 +851,7 @@ C--local variables
             uangle = getutheta(x, y, z, t, 10.d0)
             tau = sqrt(t ** 2 - z ** 2)
 
-            ! Note that all 4-velocity components must be flipped
+            ! Note that all velocity components must be flipped
             ! since they are defined in the lab frame, thus the frame
             ! must be boosted as -u so the scattering centers are
             ! boosted as u.
@@ -870,7 +870,7 @@ C--local variables
               end if
             end if
 
-            ! Only transform if there is velocity
+            ! Only transform if there is velocity (careful with sign)
             if (unorm.gt.0.d0 .or. abs(uz).gt.0.d0) then
               ux = -unorm * cos(uangle)
               uy = -unorm * sin(uangle)
@@ -918,6 +918,91 @@ C--local variables
       end subroutine
 
 
+      subroutine LorentzBoostToFluidFrame(e, px, py, pz, x, y, z, t)
+            implicit none
+C--longitudinal boost of momentum distribution
+            common/boostmed/boost
+            logical boost
+C--max rapidity
+            common/rapmax2/etamax2
+            double precision etamax2
+            double precision fourmom(4,1), fourmomboost(4,1),
+     &      boostm(4,4)
+            double precision ux, uy, uz, gam, u2, ux2, uy2, uz2,
+     &      unorm, uangle, tau
+            double precision getu,getutheta
+C--local variables
+            double precision e, px, py, pz, x, y, z, t
+
+            ! Use temp as 10.d0 to always calculate (T_C < 10)
+            unorm = getu(x, y, z, t, 10.d0)
+            uangle = getutheta(x, y, z, t, 10.d0)
+            tau = sqrt(t ** 2 - z ** 2)
+
+            ! Since we are transforming to the fluid rest frame, do not
+            ! flip the direction of velocities, as they are defined in
+            ! the lab frame 
+            if (tau.gt.0.d0 .and. boost) then
+              uz = z / tau
+            else
+              uz = 0.d0
+            end if
+
+            ! Respect simulation limit in uz
+            if (abs(uz).gt.sinh(etamax2)) then
+              if (z.gt.0d0) then
+                uz = sinh(etamax2)
+              else
+                uz = -sinh(etamax2)
+              end if
+            end if
+
+            ! Only transform if there is velocity
+            if (unorm.gt.0.d0 .or. abs(uz).gt.0.d0) then
+              ux = unorm * cos(uangle)
+              uy = unorm * sin(uangle)
+              uz2 = uz ** 2
+              u2 = unorm ** 2 + uz2
+              ux2 = ux ** 2
+              uy2 = uy ** 2
+              gam = sqrt(1 + u2)
+
+              ! Define initial four-momentum
+              fourmom(1,1) = e
+              fourmom(2,1) = px
+              fourmom(3,1) = py
+              fourmom(4,1) = pz
+
+              ! Define boost matrix
+              boostm(1,1) = gam
+              boostm(1,2) = -ux
+              boostm(1,3) = -uy
+              boostm(1,4) = -uz
+
+              boostm(2,1) = -ux
+              boostm(2,2) = 1 + (gam - 1) * ux2 / u2
+              boostm(2,3) = (gam - 1) * ux * uy / u2
+              boostm(2,4) = (gam - 1) * ux * uz / u2
+
+              boostm(3,1) = -uy
+              boostm(3,2) = (gam - 1) * uy * ux / u2
+              boostm(3,3) = 1 + (gam - 1) * uy2 / u2
+              boostm(3,4) = (gam - 1) * uy * uz / u2
+
+              boostm(4,1) = -uz
+              boostm(4,2) = (gam - 1) * ux * uz / u2
+              boostm(4,3) = (gam - 1) * uy * uz / u2
+              boostm(4,4) = 1 + (gam - 1) * uz2 / u2
+
+              ! Calculate new four-momentum
+              fourmomboost = matmul(boostm, fourmom)
+              e = fourmomboost(1,1)
+              px = fourmomboost(2,1)
+              py = fourmomboost(3,1)
+              pz = fourmomboost(4,1)
+            end if
+
+      end subroutine
 
 
       DOUBLE PRECISION FUNCTION GETTEMPMAX()

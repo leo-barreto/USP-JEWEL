@@ -5,4 +5,12 @@ usp-jewel
 *.hepm
 *.log
 *.swp
+*.xz
 user/*
+example/pdfs.dat
+example/splitint.dat
+example/xsecs.dat
+example/*.log
+example/*.hepmc
+example/0-10_example.dat
+

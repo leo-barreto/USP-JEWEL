@@ -4178,8 +4178,6 @@ C--local variables
      &m32,newm2,shat,theta2,z,gettemp,E3new,E4new,p32,p42,p3old,
      &newm,mass2,enew,pt2,pt,pl,m12,firsttime,pcms2,
      &ys,p3boost,pboost,m42,localt,oldt,precoil,qmass2,pdummy,pproj
-      ! Hydro change
-      double precision ptcompare
       double precision m4,z4,getmass,getms,getmd
       double precision thetasub,phisub,rapsub
       CHARACTER*2 TYP
@@ -4187,6 +4185,9 @@ C--local variables
      &softrec,splitrec,isrecoil
 	DATA PI/3.141592653589793d0/
 	data pdummy/1.d-6/ 
+      ! Hydro change
+      double precision pxfluidframe, pyfluidframe, pzfluidframe,
+     &efluidframe, scmass 
 
       IF((N+2*(n2-n1+1)).GT.22990)THEN
         write(logfid,*)'event too long for event record'
@@ -4592,10 +4593,25 @@ C--transformation to lab
 	   softrec=.false.
 	 else
 C--boost to fluid rest frame
-	   ys = 0.5*log((mv(1,4)+mv(1,3))/(mv(1,4)-mv(1,3)))
-	   p3boost = sinh(-ys)*p(n-1,4) + cosh(-ys)*p(n-1,3)
-	   pboost = sqrt(p3boost**2+p(n-1,1)**2+p(n-1,2)**2)
+           ! JEWEL original
+	   ! ys = 0.5*log((mv(1,4)+mv(1,3))/(mv(1,4)-mv(1,3)))
+	   ! p3boost = sinh(-ys)*p(n-1,4) + cosh(-ys)*p(n-1,3)
+	   ! pboost = sqrt(p3boost**2+p(n-1,1)**2+p(n-1,2)**2)
 	   localt = GETTEMP(MV(1,1),MV(1,2),MV(1,3),MV(1,4))
+      
+           ! Hydro change
+           pxfluidframe = p(n - 1, 1)
+           pyfluidframe = p(n - 1, 2)
+           pzfluidframe = p(n - 1, 3)
+           efluidframe = p(n - 1, 4)
+           scmass = p(n - 1, 5)
+
+           call LorentzBoostToFluidFrame(efluidframe, pxfluidframe,
+     &pyfluidframe, pzfluidframe, MV(1, 1), MV(1, 2), MV(1, 3),
+     &MV(1, 4))
+
+           pboost = sqrt(pxfluidframe ** 2 + pyfluidframe ** 2 +
+     &pzfluidframe ** 2)
 
 	   if (pboost.lt.(recsoftcut*3.*localt)) then
 	     softrec = .true.
@@ -4707,12 +4723,18 @@ C--set the production vertices: x_mother + (tprod - tprod_mother) * beta_mother
 C--store scattering centre before interaction in separate common block
 	 if (writescatcen.and.(.not.rejectt).and.
      &		(nscatcen.lt.maxnscatcen)) then
-	   nscatcen = nscatcen+1
+
+         ! Hydro temporary change:
+         !write(logfid, *) "Recoil info: ", pboost, scmass, 3 * localt
+	 if ((recmode.eq.2.) .or. (recmode.eq.3) .or. (.not.softrec)) then
+           nscatcen = nscatcen+1
 	   if (nscatcen.gt.maxnscatcen) then
 	     write(logfid,*) 
      &'WARNING: no room left to store further scattering centres'
          goto 230
 	   endif
+         endif
+
 	   if (recmode.eq.0) then
 	     if (.not.softrec) then
 	       scatflav(nscatcen) = k(1,2)
