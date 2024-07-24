@@ -562,9 +562,9 @@ C--max rapidity
       double precision etamax2
       double precision getu,getutheta,eta,u,theta
       COMMON/GAMMAMAX/GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
       DOUBLE PRECISION GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
       double precision pi
       DATA PI/3.141592653589793d0/
       double precision gettempmax
@@ -716,9 +716,9 @@ C--medium parameters
       INTEGER A
       LOGICAL WOODSSAXON,MODMED
       COMMON/GAMMAMAX/GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
       DOUBLE PRECISION GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
 C--max rapidity
       common/rapmax2/etamax2
       double precision etamax2
@@ -1118,11 +1118,20 @@ C--factor to vary Debye mass
       DOUBLE PRECISION MDFACTOR,MDSCALEFAC,PI
       DATA PI/3.141592653589793d0/
 C--local variables
-      DOUBLE PRECISION T,GETMDMIN
-      T=GETMDMIN()/(MDSCALEFAC*3.)
-      GETNATMDMIN=(2.*6.*NF*D3*2./3. + 16.*ZETA3*3./2.)
-     &     *T**3/PI**2
-      GETNATMDMIN=min(GETNATMDMIN,DENSITYMINIMUM)
+      DOUBLE PRECISION GETMDMIN
+      ! Minimum density always happens at TC, no matter MDFACTOR
+      ! or MDSCALEFAC, using JEWEL original procedure:
+      ! densmin propto min(TC**3, tempmedmin**3)
+      ! and tempmdmin = max(TC, MD / 3 * MDSCALEFAC)
+      ! => densmin prop min(TC**3, max(TC, ...)**3) = TC**3
+      ! This always valid for density function is monotonically
+      ! increasing in temperature (> 0)
+      ! Original:
+      ! T=GETMDMIN()/(MDSCALEFAC*3.)
+      ! GETNATMDMIN=(2.*6.*NF*D3*2./3. + 16.*ZETA3*3./2.)
+      !&     *T**3/PI**2
+      ! GETNATMDMIN=min(GETNATMDMIN,DENSITYMINIMUM)
+      GETNATMDMIN = DENSITYMINIMUM
       END
 
 
@@ -1148,9 +1157,9 @@ C--medium parameters
       INTEGER A
       LOGICAL WOODSSAXON,MODMED,MEDFILELIST
       COMMON/GAMMAMAX/GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
       DOUBLE PRECISION GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
 C--max rapidity
       common/rapmax2/etamax2
       double precision etamax2
@@ -1188,9 +1197,9 @@ C--function call
       double precision tempfac
 
       COMMON/GAMMAMAX/GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
       DOUBLE PRECISION GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
 C--max rapidity
       common/rapmax2/etamax2
       double precision etamax2
@@ -1258,10 +1267,13 @@ C--hydrodynamic limits
      &GLOBALLIMS, PRETAUHYDRO
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
       LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
+      DOUBLE PRECISION tempmdmin
 C--grid parameters
       common/gridpar/ gdt,gdx,gxmax,gxmin,gnx,gny,gnt
       double precision gdt,gdx,gxmax,gxmin,s
       integer gnx,gny,gnt,probcounter
+      COMMON/MDFAC/MDFACTOR,MDSCALEFAC
+      DOUBLE PRECISION MDFACTOR,MDSCALEFAC
 
       NX=834
       dx=50.d0/834.d0
