@@ -650,8 +650,10 @@ C--hydro auxiliary files
       CHARACTER*200 INITVTXF, CUSTOMN0F
       LOGICAL IDEALN0
 C--number density parameters
-      common/n0par/ densconst, n0array(2000), tempn0array(2000)
+      common/n0par/ densconst, n0array(2000), tempn0array(2000),
+     &temparraymaxpos, temparrayminpos
       double precision densconst, n0array, tempn0array
+      integer temparraymaxpos, temparrayminpos
 C--   local variables
       DOUBLE PRECISION X3,Y3,Z3,T3,PI,GETTEMP,tau,cosheta
       double precision localtemp, interpolaten0
@@ -668,15 +670,6 @@ C--   local variables
       else
           ! Interpolate  
           getn0 = interpolaten0(localtemp)
-
-          if (getn0 .lt. 0.d0) then
-              write(logfid, *) "n0 < 0, temperature out of bounds at"
-              write(logfid, *) X3, Y3, Z3, T3 
-              write(logfid, *) "Temperature = ", localtemp 
-              write(logfid, *) "Continuing with n0 = 0" 
-
-              getn0 = 0.d0
-          end if
       end if
 
       END
@@ -708,8 +701,10 @@ C--max rapidity
       common/rapmax2/etamax2
       double precision etamax2
 C--number density parameters
-      common/n0par/ densconst, n0array(2000), tempn0array(2000)
+      common/n0par/ densconst, n0array(2000), tempn0array(2000),
+     &temparraymaxpos, temparrayminpos
       double precision densconst, n0array, tempn0array
+      integer temparraymaxpos, temparrayminpos
 C--   local variables
       DOUBLE PRECISION X3,Y3,Z3,T3,PI,GETTEMP,tau,cosheta
       double precision getu,getutheta
@@ -1341,14 +1336,17 @@ C--grid parameters
       COMMON/MDFAC/MDFACTOR,MDSCALEFAC
       DOUBLE PRECISION MDFACTOR,MDSCALEFAC
 C--number density parameters
-      common/n0par/ densconst, n0array(2000), tempn0array(2000)
+      common/n0par/ densconst, n0array(2000), tempn0array(2000),
+     &temparraymaxpos, temparrayminpos
       double precision densconst, n0array, tempn0array
+      integer temparraymaxpos, temparrayminpos
 C--hydro auxiliary files
       COMMON /HYDROF/ INITVTXF, IDEALN0, CUSTOMN0F
       CHARACTER*200 INITVTXF, CUSTOMN0F
       LOGICAL IDEALN0
       
-      double precision interpolaten0, intern0max, intern0min
+      double precision intern0max, intern0min, interpolaten0
+      integer binarysearch
       
 
       NX=834
@@ -1473,6 +1471,13 @@ C--as well as its highest temperature
       else
           call read_customn0(tempn0array, n0array)
 
+          ! Set positions of TMAXLIM and TC in tempon0array for
+          ! better efficiency in future interpolations
+          temparraymaxpos = binarysearch(TMAXLIM, tempn0array, 1,
+     &maxloc(tempn0array))
+          temparrayminpos = binarysearch(TC, tempn0array, 1,
+     &maxloc(tempn0array))
+
           intern0max = interpolaten0(TMAXLIM)
           densitymaximum = intern0max *
      &(sqrt(1 + sinh(MIDRAPLIM) ** 2) + sinh(MIDRAPLIM))
@@ -1482,9 +1487,9 @@ C--as well as its highest temperature
 
           write(*, *) "Interpolated limits for n0"
           write(*, *) "n0max = ", intern0max, " (ideal = ", 
-     &densconst * TMAXLIM ** 3, ")" 
+     &densconst * TMAXLIM ** 3, "), pos = ", temparraymaxpos 
           write(*, *) "n0min = ", intern0min, " (ideal = ", 
-     &densconst * TC ** 3, ")" 
+     &densconst * TC ** 3, "), pos = ", temparrayminpos 
       endif
 
       write(*,*)

@@ -414,11 +414,13 @@ C--hydro auxiliary files
       COMMON/logfile/logfid
       INTEGER logfid
 C--number density parameters
-      common/n0par/ densconst, n0array(2000), tempn0array(2000)
+      common/n0par/ densconst, n0array(2000), tempn0array(2000),
+     &temparraymaxpos, temparrayminpos
       double precision densconst, n0array, tempn0array
+      integer temparraymaxpos, temparrayminpos
 C--local variables
       double precision T, Tmin, Tmax, n0min, n0max
-      integer counter
+      integer counter, up, down, binarysearch
 
       interpolaten0 = 0.d0
 
@@ -431,37 +433,58 @@ C--local variables
           return
       end if
 
-      ! Find Tmin and Tmax
-      do counter = 1, 1800
-          if ((T .gt. tempn0array(counter)) .and.
-     &(T .le. tempn0array(counter + 1))) then
-          
-              Tmin = tempn0array(counter)
-              Tmax = tempn0array(counter + 1)
-              n0min = n0array(counter)
-              n0max = n0array(counter + 1)
+      ! Find bin with binary search, n0array must be sorted for this
+      counter = binarysearch(T, tempn0array, temparrayminpos,
+     &temparraymaxpos)
+      
+      if (counter .eq. -1) then
+          write(logfid,*) "INTERPOLATEN0: T not found in binary search"
+          write(logfid,*) "Will continue with n0 = 0 (no density)"
 
-              ! write(*, *) "Tmin = ", Tmin 
-              ! write(*, *) "Tmax = ", Tmax 
+          return
+      end if 
 
-              ! write(*, *) "n0 = ",  
-      ! &n0min + (T - Tmin) * (n0max - n0min) / (Tmax - Tmin)
-              ! write(*, *) "n0min = ", n0min 
-              ! write(*, *) "n0max = ", n0max 
+      Tmin = tempn0array(counter)
+      Tmax = tempn0array(counter + 1)
+      n0min = n0array(counter)
+      n0max = n0array(counter + 1)
 
-              ! write(*, *) "counter = ", counter
-
-              ! Linear interpolation
-              interpolaten0 = n0min + (T - Tmin) * (n0max - n0min) 
+      ! Linear interpolation
+      interpolaten0 = n0min + (T - Tmin) * (n0max - n0min) 
      &/ (Tmax - Tmin)
-              return
-         end if 
-      end do 
-          
-      write(logfid,*) "INTERPOLATEN0: T bounded but no inner value"
-      write(logfid,*) "This should not happen, check function"
-      write(logfid,*) "Will continue with n0 = 0 (no density)"
       
       return
       
+      END
+
+
+
+      INTEGER FUNCTION BINARYSEARCH(X, ARRAY, LOWBOUND, HIGHBOUND)
+      IMPLICIT NONE
+C--local variables
+      double precision x, array(2000)
+      integer lowbound, highbound
+      integer down, up, mid
+
+      binarysearch = -1
+      down = lowbound
+      up = highbound
+      do while (down .le. up)
+          mid = (down + up) / 2
+
+          if (x .gt. array(mid) .and. x .le. array(mid + 1)) then
+              binarysearch = mid
+              return 
+          end if
+
+          if (x .gt. array(mid)) then
+              down = mid + 1
+      
+          else
+              up = mid - 1
+          end if
+      end do
+
+      return
+
       END
