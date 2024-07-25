@@ -2,3 +2,4 @@ MEDFILE 0-10_example.dat
 TC 0.17
 MDSCALEFAC 1.2
 INITVTXF '../initvertexmap.dat'
+CUSTOMN0F '../n0proptoentropy_derv21_Tmax675.dat'
