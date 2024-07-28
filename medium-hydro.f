@@ -122,8 +122,9 @@ C--hydrodynamic quantities
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
       LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
 C--hydro auxiliary files
-      COMMON /HYDROF/ INITVTXF
-      CHARACTER*200 INITVTXF
+      COMMON /HYDROF/ INITVTXF, IDEALN0, CUSTOMN0F
+      CHARACTER*200 INITVTXF, CUSTOMN0F
+      LOGICAL IDEALN0
 C--identifier of log file
       common/logfile/logfid
       integer logfid
@@ -179,13 +180,15 @@ C--hydro settings
       ! (see nucl-ex/1612.08966)
       MIDRAPLIM=3.3d0
       TMAXLIM=0.675d0   ! Approx vUSP+TRENTo temp lim (PbPb 5TeV)
-      BOOSTTR= .true. ! Logical for transverse velocity (F => u=0)
+      BOOSTTR=.true. ! Logical for transverse velocity (F => u=0)
       TVELMAXLIM=0.927d0   ! Approx vUSP+TRENTo uT lim (PbPb 5TeV)
       ! Temperature assumption before TAU0, i.e. F => T(tau < tau0) = 0
       PRETAUHYDRO=.false.
       !GRIDN=834     ! Number of points in grid (per dimension)
-      ! Initial vertex map file
-      INITVTXF='initvertexmap.dat'
+      INITVTXF='initvertexmap.dat'  ! Initial vertex map file
+      ! Logical for using n0 propto T ** 3, ignores CUSTOMN0F if true
+      IDEALN0=.false.  
+      CUSTOMN0F='n0proptoentropy_derv21_Tmax675.dat'  ! Custom n0 function file
 
       ! Print program info
       call printhydroheader(logfid)
@@ -249,6 +252,10 @@ C--read settings from file
             !READ(BUFFER,*,IOSTAT=IOS) GRIDN
           ELSE IF (LABEL=="INITVTXF") THEN
             READ(BUFFER,*,IOSTAT=IOS) INITVTXF
+          ELSE IF (LABEL=="IDEALN0") THEN
+            READ(BUFFER,*,IOSTAT=IOS) IDEALN0
+          ELSE IF (LABEL=="CUSTOMN0F") THEN
+            READ(BUFFER,*,IOSTAT=IOS) CUSTOMN0F
           ! JEWEL original boost (longitudinal) as user option
           ELSE IF (LABEL=="BOOSTZ") THEN
             READ(BUFFER,*,IOSTAT=IOS) boost
@@ -292,11 +299,13 @@ C--read settings from file
       write(logfid,*)'GLOBALLIMS  = ',GLOBALLIMS
       write(logfid,*)'MIDRAPLIM   = ',MIDRAPLIM
       write(logfid,*)'TMAXLIM     = ',TMAXLIM
-      write(logfid,*)'BOOSTTR    = ',BOOSTTR
+      write(logfid,*)'BOOSTTR     = ',BOOSTTR
       write(logfid,*)'TVELMAXLIM  = ',TVELMAXLIM
       write(logfid,*)'PRETAUHYDRO = ',PRETAUHYDRO
       !write(logfid,*)'GRIDN       = ',GRIDN
       write(logfid,*)'INITVTXF    = ',INITVTXF
+      write(logfid,*)'IDEALN0     = ',IDEALN0
+      write(logfid,*)'CUSTOMN0F   = ',CUSTOMN0F
       write(logfid,*)'BOOSTZ      = ',boost
       write(logfid,*)
       write(logfid,*)
@@ -562,9 +571,9 @@ C--max rapidity
       double precision etamax2
       double precision getu,getutheta,eta,u,theta
       COMMON/GAMMAMAX/GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
       DOUBLE PRECISION GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
       double precision pi
       DATA PI/3.141592653589793d0/
       double precision gettempmax
@@ -625,6 +634,48 @@ C--factor to vary Debye mass
 
 
 
+      DOUBLE PRECISION FUNCTION GETN0(X3,Y3,Z3,T3)
+      IMPLICIT NONE
+      COMMON/MEDPARAMINT/TAUI,TI,TC,D3,ZETA3,D,
+     &N0,SIGMANN,A,WOODSSAXON,MODMED
+      DOUBLE PRECISION TAUI,TI,TC,ALPHA,BETA,GAMMA,D3,ZETA3,D,N0,
+     &SIGMANN
+      INTEGER A
+      LOGICAL WOODSSAXON,MODMED
+C--identifier of log file
+      common/logfile/logfid
+      integer logfid
+C--hydro auxiliary files
+      COMMON /HYDROF/ INITVTXF, IDEALN0, CUSTOMN0F
+      CHARACTER*200 INITVTXF, CUSTOMN0F
+      LOGICAL IDEALN0
+C--number density parameters
+      common/n0par/ densconst, n0array(2000), tempn0array(2000),
+     &temparraymaxpos, temparrayminpos
+      double precision densconst, n0array, tempn0array
+      integer temparraymaxpos, temparrayminpos
+C--   local variables
+      DOUBLE PRECISION X3,Y3,Z3,T3,PI,GETTEMP,tau,cosheta
+      double precision localtemp, interpolaten0
+      DATA PI/3.141592653589793d0/
+
+      getn0 = 0.d0
+      localtemp = GETTEMP(X3,Y3,Z3,T3)
+      IF ((ABS(Z3).gt.T3) .OR. (localtemp.le.TC)) THEN
+        RETURN
+      END IF
+
+      if (IDEALN0) then
+          getn0 = densconst * localtemp ** 3
+      else
+          ! Interpolate  
+          getn0 = interpolaten0(localtemp)
+      end if
+
+      END
+
+
+
       DOUBLE PRECISION FUNCTION GETNEFF(X3,Y3,Z3,T3,P0,P1,P2,P3)
       IMPLICIT NONE
       COMMON/MEDPARAM/CENTRMIN,CENTRMAX,BREAL,CENTR,RAU,
@@ -649,19 +700,30 @@ C--factor to vary Debye mass
 C--max rapidity
       common/rapmax2/etamax2
       double precision etamax2
+C--number density parameters
+      common/n0par/ densconst, n0array(2000), tempn0array(2000),
+     &temparraymaxpos, temparrayminpos
+      double precision densconst, n0array, tempn0array
+      integer temparraymaxpos, temparrayminpos
 C--   local variables
       DOUBLE PRECISION X3,Y3,Z3,T3,PI,GETTEMP,tau,cosheta
       double precision getu,getutheta
       double precision umx, umy, umz, umr, umtheta, gam, vp, gamp,
      &localtemp
       double precision J0, J1, J2, J3, P0, P1, P2, P3, ys
+      double precision getn0
       DATA PI/3.141592653589793d0/
 
-      getneff=0.d0
-      localtemp = GETTEMP(X3,Y3,Z3,T3)
-      IF ((ABS(Z3).gt.T3) .OR. (localtemp.le.TC)) THEN
-        RETURN
-      END IF
+
+      ! getneff=0.d0
+      getneff=getn0(X3, Y3, Z3, T3)
+      if (getneff .eq. 0.d0) then
+          return
+      end if
+      ! localtemp = GETTEMP(X3,Y3,Z3,T3)
+      ! IF ((ABS(Z3).gt.T3) .OR. (localtemp.le.TC)) THEN
+      !   RETURN
+      ! END IF
 
       tau = sqrt(t3**2-z3**2)
       if (boost) then
@@ -679,8 +741,8 @@ C--   local variables
 
 
       !cosheta = t3/tau
-      GETNEFF=(2.*6.*NF*D3*2./3. + 16.*ZETA3*3./2.)
-     &     *localtemp**3/PI**2
+      ! GETNEFF=(2.*6.*NF*D3*2./3. + 16.*ZETA3*3./2.)
+      ! &     *localtemp**3/PI**2
       !write(*,*) "Original neff = ", GETNEFF/cosheta
 
       !Scattering center 4-current
@@ -716,9 +778,9 @@ C--medium parameters
       INTEGER A
       LOGICAL WOODSSAXON,MODMED
       COMMON/GAMMAMAX/GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
       DOUBLE PRECISION GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
 C--max rapidity
       common/rapmax2/etamax2
       double precision etamax2
@@ -1118,11 +1180,20 @@ C--factor to vary Debye mass
       DOUBLE PRECISION MDFACTOR,MDSCALEFAC,PI
       DATA PI/3.141592653589793d0/
 C--local variables
-      DOUBLE PRECISION T,GETMDMIN
-      T=GETMDMIN()/(MDSCALEFAC*3.)
-      GETNATMDMIN=(2.*6.*NF*D3*2./3. + 16.*ZETA3*3./2.)
-     &     *T**3/PI**2
-      GETNATMDMIN=min(GETNATMDMIN,DENSITYMINIMUM)
+      DOUBLE PRECISION GETMDMIN
+      ! Minimum density always happens at TC, no matter MDFACTOR
+      ! or MDSCALEFAC, using JEWEL original procedure:
+      ! densmin propto min(TC**3, tempmedmin**3)
+      ! and tempmdmin = max(TC, MD / 3 * MDSCALEFAC)
+      ! => densmin prop min(TC**3, max(TC, ...)**3) = TC**3
+      ! This always valid for density function is monotonically
+      ! increasing in temperature (> 0)
+      ! Original:
+      ! T=GETMDMIN()/(MDSCALEFAC*3.)
+      ! GETNATMDMIN=(2.*6.*NF*D3*2./3. + 16.*ZETA3*3./2.)
+      !&     *T**3/PI**2
+      ! GETNATMDMIN=min(GETNATMDMIN,DENSITYMINIMUM)
+      GETNATMDMIN = DENSITYMINIMUM
       END
 
 
@@ -1148,9 +1219,9 @@ C--medium parameters
       INTEGER A
       LOGICAL WOODSSAXON,MODMED,MEDFILELIST
       COMMON/GAMMAMAX/GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
       DOUBLE PRECISION GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
 C--max rapidity
       common/rapmax2/etamax2
       double precision etamax2
@@ -1188,9 +1259,9 @@ C--function call
       double precision tempfac
 
       COMMON/GAMMAMAX/GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
       DOUBLE PRECISION GAMMAMAXIMUM,VELMAXIMUM,DENSITYMAXIMUM,
-     &DENSITYMINIMUMDENSITYMINIMUM, TAUMIN
+     &DENSITYMINIMUM, TAUMIN
 C--max rapidity
       common/rapmax2/etamax2
       double precision etamax2
@@ -1248,9 +1319,8 @@ C--local variables
       INTEGER I,J,K,POS,II,kk,kkk,length
       logical ltime
       double precision hightemp, cdensmin, cdensmax, cvel, cveltot,
-     &densconst, randuz, randpz, randpr, cdens, pyr, maxu
+     &randuz, randpz, randpr, cdens, pyr, maxu
       integer nrandpoints, irand
-      double precision densityarray(834,834,60)
       double precision PI
       DATA PI/3.141592653589793d0/
 C--hydrodynamic limits
@@ -1258,10 +1328,26 @@ C--hydrodynamic limits
      &GLOBALLIMS, PRETAUHYDRO
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
       LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
+      DOUBLE PRECISION tempmdmin
 C--grid parameters
       common/gridpar/ gdt,gdx,gxmax,gxmin,gnx,gny,gnt
       double precision gdt,gdx,gxmax,gxmin,s
       integer gnx,gny,gnt,probcounter
+      COMMON/MDFAC/MDFACTOR,MDSCALEFAC
+      DOUBLE PRECISION MDFACTOR,MDSCALEFAC
+C--number density parameters
+      common/n0par/ densconst, n0array(2000), tempn0array(2000),
+     &temparraymaxpos, temparrayminpos
+      double precision densconst, n0array, tempn0array
+      integer temparraymaxpos, temparrayminpos
+C--hydro auxiliary files
+      COMMON /HYDROF/ INITVTXF, IDEALN0, CUSTOMN0F
+      CHARACTER*200 INITVTXF, CUSTOMN0F
+      LOGICAL IDEALN0
+      
+      double precision intern0max, intern0min, interpolaten0
+      integer binarysearch
+      
 
       NX=834
       dx=50.d0/834.d0
@@ -1285,8 +1371,7 @@ C--grid parameters
       call reader(medfile,834,60,timesteps,tprofile,u,utheta)
 
       call read_initvtx(834, tprofile, vtxmap)
-
-
+      
 
       velmaximum = 0.d0
       hightemp = 0.d0
@@ -1376,11 +1461,36 @@ C--as well as its highest temperature
       maxu = sqrt(TVELMAXLIM ** 2 + sinh(MIDRAPLIM) ** 2)
       densconst = (2.*6.*NF*D3*2./3. + 16.*ZETA3*3./2.)/PI**2
 
-      densitymaximum = densconst * TMAXLIM ** 3 *
+      if (IDEALN0) then
+          densitymaximum = densconst * TMAXLIM ** 3 *
      &(sqrt(1 + sinh(MIDRAPLIM) ** 2) + sinh(MIDRAPLIM))
 
-      densityminimum = densconst * TC ** 3 *
+          densityminimum = densconst * TC ** 3 *
      &(sqrt(1 + maxu ** 2) - maxu)
+      
+      else
+          call read_customn0(tempn0array, n0array)
+
+          ! Set positions of TMAXLIM and TC in tempon0array for
+          ! better efficiency in future interpolations
+          temparraymaxpos = binarysearch(TMAXLIM, tempn0array, 1,
+     &maxloc(tempn0array))
+          temparrayminpos = binarysearch(TC, tempn0array, 1,
+     &maxloc(tempn0array))
+
+          intern0max = interpolaten0(TMAXLIM)
+          densitymaximum = intern0max *
+     &(sqrt(1 + sinh(MIDRAPLIM) ** 2) + sinh(MIDRAPLIM))
+          
+          intern0min = interpolaten0(TC)
+          densityminimum = intern0min * (sqrt(1 + maxu ** 2) - maxu)
+
+          write(*, *) "Interpolated limits for n0"
+          write(*, *) "n0max = ", intern0max, " (ideal = ", 
+     &densconst * TMAXLIM ** 3, "), pos = ", temparraymaxpos 
+          write(*, *) "n0min = ", intern0min, " (ideal = ", 
+     &densconst * TC ** 3, "), pos = ", temparrayminpos 
+      endif
 
       write(*,*)
       write(*,*) "TAU max (for limits)= ", timesteps(nt - 1)

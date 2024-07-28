@@ -85,15 +85,17 @@ C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       ! temperature at tau0 and initvtxmap.dat
       subroutine read_initvtx(np, tprofile, vtxprofile)
       implicit none
+      COMMON/logfile/logfid
+      INTEGER logfid
       integer np, ios, i, j, nlines, k
       logical f_exist
       double precision tprofile(np, np, 60)
       double precision vtxprofile(np, np), tempmap(2000), vtxmap(2000)
-      !character(200) rfile
       double precision temp, dT, dsup, dinf
 C--hydro auxiliary files
-      COMMON /HYDROF/ INITVTXF 
-      CHARACTER*200 INITVTXF 
+      COMMON /HYDROF/ INITVTXF, IDEALN0, CUSTOMN0F
+      CHARACTER*200 INITVTXF, CUSTOMN0F
+      LOGICAL IDEALN0
 
 
       ! Load initial vertex map from INITVTXF
@@ -102,6 +104,7 @@ C--hydro auxiliary files
       nlines = 1
 
       write(*,*) 'Loading initial vertex transformation from ', INITVTXF
+      write(logfid,*) 'read initial vertex table from ', INITVTXF
       inquire(file=INITVTXF, exist=f_exist)
       if (f_exist .eqv. .false.) then
           write(*,*) 'INITVTXF does not exist. Killing simulation.'
@@ -117,7 +120,7 @@ C--hydro auxiliary files
       close(1)
 
 
-      if (nlines .gt. 5000 .or. nlines .lt. 2) then
+      if (nlines .gt. 2001 .or. nlines .lt. 2) then
           write(*,*) 'WARNING: init vertex table size is wrong.
      &Check read_initvtx'
       end if
@@ -164,6 +167,56 @@ C--hydro auxiliary files
 
       ! Normalize probabilities
       vtxprofile = vtxprofile / sum(vtxprofile)
+
+      end subroutine
+
+
+
+      ! Read array for n0 function interpolation 
+      subroutine read_customn0(tempmap, n0array)
+      implicit none
+      COMMON/logfile/logfid
+      INTEGER logfid
+      integer np, ios, i, j, nlines, k
+      logical f_exist
+      double precision tempmap(2000), n0array(2000)
+C--hydro auxiliary files
+      COMMON /HYDROF/ INITVTXF, IDEALN0, CUSTOMN0F
+      CHARACTER*200 INITVTXF, CUSTOMN0F
+      LOGICAL IDEALN0
+
+
+      ! Load n0array from CUSTOMN0F
+      tempmap = 0.0
+      n0array = 0.0
+      nlines = 1
+
+      if (IDEALN0) then
+          write(logfid,*) 
+     &'Assuming ideal number density (propto T ** 3).'
+      else 
+          write(*,*) 'Loading n0 custom function from ', CUSTOMN0F
+          write(logfid,*) 'read n0 interpolation table from ', CUSTOMN0F
+          inquire(file=CUSTOMN0F, exist=f_exist)
+          if (f_exist .eqv. .false.) then
+              write(*,*) 'CUSTOMN0F does not exist. Killing simulation.'
+              stop
+          end if      
+
+          open(1, file=CUSTOMN0F, iostat=ios)
+          do while (ios .eq. 0)
+              read(1, *, iostat=ios) tempmap(nlines), n0array(nlines)
+              nlines = nlines + 1
+          end do
+
+          close(1)
+
+
+          if (nlines .gt. 2001 .or. nlines .lt. 2) then
+              write(*,*) 'WARNING: custom n0 table size is wrong.
+     &Check read_customn0'
+          end if
+      end if
 
       end subroutine
 
@@ -353,3 +406,85 @@ C--hydro auxiliary files
       end do
 
       end function
+      
+
+
+      DOUBLE PRECISION FUNCTION INTERPOLATEN0(T)
+      IMPLICIT NONE
+      COMMON/logfile/logfid
+      INTEGER logfid
+C--number density parameters
+      common/n0par/ densconst, n0array(2000), tempn0array(2000),
+     &temparraymaxpos, temparrayminpos
+      double precision densconst, n0array, tempn0array
+      integer temparraymaxpos, temparrayminpos
+C--local variables
+      double precision T, Tmin, Tmax, n0min, n0max
+      integer counter, up, down, binarysearch
+
+      interpolaten0 = 0.d0
+
+      ! Flag if out of bounds
+      if ((T .lt. minval(tempn0array)) .or.
+     &(T .gt. maxval(tempn0array))) then
+          write(logfid,*) 
+     &"Temperature out of CUSTOMN0F bounds in INTERPOLATEN0"
+          write(logfid,*) "Will continue with n0 = 0 (no density)"
+          return
+      end if
+
+      ! Find bin with binary search, n0array must be sorted for this
+      counter = binarysearch(T, tempn0array, temparrayminpos,
+     &temparraymaxpos)
+      
+      if (counter .eq. -1) then
+          write(logfid,*) "INTERPOLATEN0: T not found in binary search"
+          write(logfid,*) "Will continue with n0 = 0 (no density)"
+
+          return
+      end if 
+
+      Tmin = tempn0array(counter)
+      Tmax = tempn0array(counter + 1)
+      n0min = n0array(counter)
+      n0max = n0array(counter + 1)
+
+      ! Linear interpolation
+      interpolaten0 = n0min + (T - Tmin) * (n0max - n0min) 
+     &/ (Tmax - Tmin)
+      
+      return
+      
+      END
+
+
+
+      INTEGER FUNCTION BINARYSEARCH(X, ARRAY, LOWBOUND, HIGHBOUND)
+      IMPLICIT NONE
+C--local variables
+      double precision x, array(2000)
+      integer lowbound, highbound
+      integer down, up, mid
+
+      binarysearch = -1
+      down = lowbound
+      up = highbound
+      do while (down .le. up)
+          mid = (down + up) / 2
+
+          if (x .gt. array(mid) .and. x .le. array(mid + 1)) then
+              binarysearch = mid
+              return 
+          end if
+
+          if (x .gt. array(mid)) then
+              down = mid + 1
+      
+          else
+              up = mid - 1
+          end if
+      end do
+
+      return
+
+      END
