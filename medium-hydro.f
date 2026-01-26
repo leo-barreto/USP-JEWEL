@@ -122,9 +122,9 @@ C--hydrodynamic quantities
       DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
       LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
 C--hydro auxiliary files
-      COMMON /HYDROF/ INITVTXF, IDEALN0, CUSTOMN0F
+      COMMON /HYDROF/ INITVTXF, IDEALN0, CUSTOMN0F, INITVTXORIG
       CHARACTER*200 INITVTXF, CUSTOMN0F
-      LOGICAL IDEALN0
+      LOGICAL IDEALN0, INITVTXORIG
 C--identifier of log file
       common/logfile/logfid
       integer logfid
@@ -186,6 +186,7 @@ C--hydro settings
       PRETAUHYDRO=.false.
       !GRIDN=834     ! Number of points in grid (per dimension)
       INITVTXF='initvertexmap.dat'  ! Initial vertex map file
+      INITVTXORIG=.false.   ! Fix hard scattering to origin
       ! Logical for using n0 propto T ** 3, ignores CUSTOMN0F if true
       IDEALN0=.false.  
       CUSTOMN0F='n0proptoentropy_derv21_Tmax675.dat'  ! Custom n0 function file
@@ -252,6 +253,8 @@ C--read settings from file
             !READ(BUFFER,*,IOSTAT=IOS) GRIDN
           ELSE IF (LABEL=="INITVTXF") THEN
             READ(BUFFER,*,IOSTAT=IOS) INITVTXF
+          ELSE IF (LABEL=="INITVTXORIG") THEN
+            READ(BUFFER,*,IOSTAT=IOS) INITVTXORIG
           ELSE IF (LABEL=="IDEALN0") THEN
             READ(BUFFER,*,IOSTAT=IOS) IDEALN0
           ELSE IF (LABEL=="CUSTOMN0F") THEN
@@ -304,6 +307,7 @@ C--read settings from file
       write(logfid,*)'PRETAUHYDRO = ',PRETAUHYDRO
       !write(logfid,*)'GRIDN       = ',GRIDN
       write(logfid,*)'INITVTXF    = ',INITVTXF
+      write(logfid,*)'INITVTXORIG = ',INITVTXORIG
       write(logfid,*)'IDEALN0     = ',IDEALN0
       write(logfid,*)'CUSTOMN0F   = ',CUSTOMN0F
       write(logfid,*)'BOOSTZ      = ',boost
@@ -375,34 +379,43 @@ C--medium parameters
       double precision pyr, zval
       common/logfile/logfid
       integer logfid
+C--hydro auxiliary files
+      COMMON /HYDROF/ INITVTXF, IDEALN0, CUSTOMN0F, INITVTXORIG
+      CHARACTER*200 INITVTXF, CUSTOMN0F
+      LOGICAL IDEALN0, INITVTXORIG
 
-      do counter = 1, 5
-          zval = pyr(0) * maxval(vtxmap)
+      if (INITVTXORIG) then
+          x = 0.d0
+          y = 0.d0
+      else
+          do counter = 1, 5
+              zval = pyr(0) * maxval(vtxmap)
 
-          ! Consider only a 10 fm by 10 fm (k = 250, 583)
-          ! since anywhere else wont have entropy (PbPb)
-          maxpos = 583
-          minpos = 250
+              ! Consider only a 10 fm by 10 fm (k = 250, 583)
+              ! since anywhere else wont have entropy (PbPb)
+              maxpos = 583
+              minpos = 250
 
-          do tries = 1, 1000000
-              irand = int(pyr(0) * (maxpos - minpos) + minpos)
-              jrand = int(pyr(0) * (maxpos - minpos) + minpos)
+              do tries = 1, 1000000
+                  irand = int(pyr(0) * (maxpos - minpos) + minpos)
+                  jrand = int(pyr(0) * (maxpos - minpos) + minpos)
 
-              if (vtxmap(irand, jrand) .gt. zval) then
-                  x = -25.d0 + (irand - 1) * (50.d0 / 833.d0)
-                  y = -25.d0 + (jrand - 1) * (50.d0 / 833.d0)
-                  return
-              end if
+                  if (vtxmap(irand, jrand) .gt. zval) then
+                      x = -25.d0 + (irand - 1) * (50.d0 / 833.d0)
+                      y = -25.d0 + (jrand - 1) * (50.d0 / 833.d0)
+                      return
+                  end if
+              end do
+
+              write(*,*) 'Failed to find vtx, restarting selection.'
+              write(*,*) 'This should not happen often.'
           end do
 
-          write(*,*) 'Failed to find vtx, restarting selection.'
-          write(*,*) 'This should not happen often.'
-      end do
-
-      ! Only do process 5 times, kill simulation otherwise
-      write(*,*) 'No initial vertex found. Check initialvtx table.'
-      write(logfid,*) 'No initial vertex found. Check initialvtx table.'
-      stop
+          ! Only do process 5 times, kill simulation otherwise
+          write(*,*) 'No initial vertex found. Check initialvtx.'
+          write(logfid,*) 'No initial vertex found. Check initialvtx.'
+          stop
+      end if
 
       END SUBROUTINE
 
@@ -646,9 +659,9 @@ C--identifier of log file
       common/logfile/logfid
       integer logfid
 C--hydro auxiliary files
-      COMMON /HYDROF/ INITVTXF, IDEALN0, CUSTOMN0F
+      COMMON /HYDROF/ INITVTXF, IDEALN0, CUSTOMN0F, INITVTXORIG
       CHARACTER*200 INITVTXF, CUSTOMN0F
-      LOGICAL IDEALN0
+      LOGICAL IDEALN0, INITVTXORIG
 C--number density parameters
       common/n0par/ densconst, n0array(2000), tempn0array(2000),
      &temparraymaxpos, temparrayminpos
@@ -1341,9 +1354,9 @@ C--number density parameters
       double precision densconst, n0array, tempn0array
       integer temparraymaxpos, temparrayminpos
 C--hydro auxiliary files
-      COMMON /HYDROF/ INITVTXF, IDEALN0, CUSTOMN0F
+      COMMON /HYDROF/ INITVTXF, IDEALN0, CUSTOMN0F, INITVTXORIG
       CHARACTER*200 INITVTXF, CUSTOMN0F
-      LOGICAL IDEALN0
+      LOGICAL IDEALN0, INITVTXORIG
       
       double precision intern0max, intern0min, interpolaten0
       integer binarysearch
