@@ -414,6 +414,9 @@ C--Pythia parameters
 	double precision PTMIN,PTMAX
 	LOGICAL WEIGHTED
 
+C--ISR debug
+      COMMON/ISRDEBUG/ISRFLAG
+      LOGICAL ISRFLAG
 C--scattering info variables
       COMMON/SCATINFOVAR/MINPTSCATINFO
       DOUBLE PRECISION MINPTSCATINFO
@@ -475,6 +478,7 @@ C--default settings
 	kinmode = 1
 	recmode = 0
       minptscatinfo = 3.d0
+      isrflag = .true.
 	
 	if (iargc().eq.0) then
 	  write(*,*)'No parameter file given, '// 
@@ -569,6 +573,8 @@ C--default settings
             read(value,*,iostat=ios) recmode
           elseif(label.eq."MINPTSCATINFO")then
             read(value,*,iostat=ios) minptscatinfo
+          elseif(label.eq."ISR")then
+            read(value,*,iostat=ios) isrflag 
 	    else
 	      write(*,*)'unknown label ',label
 	    endif
@@ -888,6 +894,9 @@ C--Pythia parameters
 	common/pythiaparams/PTMIN,PTMAX,weighted
 	double precision PTMIN,PTMAX
 	LOGICAL WEIGHTED
+C--ISR debug
+      COMMON/ISRDEBUG/ISRFLAG
+      LOGICAL ISRFLAG
 
 C--Variables local to this program
 	character*2 beam1,beam2
@@ -898,9 +907,13 @@ C--keep parton shower history in PYJETS
 C--no multiple interactions
 	 MSTP(81) = 0
 C--initial state radiation
-	 MSTP(61)=1
+      if (ISRFLAG) then
+	     MSTP(61)=1
+      else
+	     MSTP(61)=0
+      end if
 C--switch off final state radiation off partons emitted from space-like shower
-!	 MSTP(63)=0
+	 !MSTP(63)=0
 C--switch off final state radiation
 	 MSTP(71)=0
 C--No hadronisation (yet)
