@@ -143,11 +143,6 @@ C--e+ + e- event loop
 	  DO 100 J=1,NSIM
           NSCATHIGHPT = 0
 	      call genevent(j,b1,b2)
-          ! write(scatinfo,*) 'N high-pT eff scatterings = ',NSCATHIGHPT, 
-       ! &', evt weight = ', EVWEIGHT
-          write(scatinfo, '(A, 1X, A, 1X, A, F6.1 ES25.8E3)') 
-     &'E', b1, b2, NSCATHIGHPT, EVWEIGHT
-          write(scatinfo,*) 
  100	  CONTINUE
 	  sumofweightstot = sumofweightstot+sumofweights
 	  wdisctot = wdisctot + wdisc
@@ -227,12 +222,8 @@ C--loop over channels
 	    write(logfid,*)
 C--event loop
 	    DO 102 J=1,nsimchn
-          ! write(scatinfo,'(A, A, A, A, A)') '========== NEW EVENT: ', 
-       ! &b1, ' + ', b2, ' ========='
           NSCATHIGHPT = 0
 	      call genevent(j,b1,b2)
-          ! write(scatinfo,*) 'N high-pT eff scatterings = ',NSCATHIGHPT, 
-       ! &', evt weight = ', EVWEIGHT
           write(scatinfo, '(A, 1X, A, 1X, A, F6.1 ES25.8E3)') 
      &'E', b1, b2, NSCATHIGHPT, EVWEIGHT
           write(scatinfo,*) 
@@ -573,7 +564,7 @@ C--default settings
             read(value,*,iostat=ios) recmode
           elseif(label.eq."MINPTSCATINFO")then
             read(value,*,iostat=ios) minptscatinfo
-          elseif(label.eq."ISR")then
+          elseif(label.eq."ISRON")then
             read(value,*,iostat=ios) isrflag 
 	    else
 	      write(*,*)'unknown label ',label
@@ -2687,6 +2678,7 @@ C--do kinematics
 	ENDIF
 	IF((K(LINE,1).EQ.1).AND.(P(LINE,5).EQ.0.d0)) K(LINE,1)=4
 	IF((K(LINE,1).EQ.2).AND.(zd(line).lt.0.d0)) K(LINE,1)=5
+
       END
 
 
@@ -4242,7 +4234,7 @@ C--local variables
 	data pdummy/1.d-6/ 
       ! Hydro change
       double precision pxfluidframe, pyfluidframe, pzfluidframe,
-     &efluidframe, scmass 
+     &efluidframe, scmass, q2scat
 
       oldpt = sqrt(P(lold, 1) ** 2 + P(lold, 2) ** 2)
       ! Hard limit for showing the scattering and parton info
@@ -4776,7 +4768,27 @@ C--set the production vertices: x_mother + (tprod - tprod_mother) * beta_mother
 	 ENDIF
 	 MV(LINE,5)=ALLQS(J,6)
 
-	 if ((.not.redokin).and.(.not.rejectt)) NSCAT=NSCAT+EVWEIGHT
+	 if ((.not.redokin).and.(.not.rejectt)) then
+      NSCAT=NSCAT+EVWEIGHT
+
+      Q2SCAT = (P(n,4) - P(line,4))**2 - (P(n,1) - P(line,1))**2
+     &- (P(n,2) - P(line,2))**2 - (P(n,3) - P(line,3))**2
+
+      ! line = incoming shower parton
+      ! n = outcoming shower parton
+      ! n-1 = recoil 
+      write(scatinfo,'(A, F10.6)') 'Q2', Q2SCAT
+      write(scatinfo,'(A, 8F10.6)')
+     &'M', MV(1,4), MV(1,1), MV(1,2), MV(1,3), 
+     &p(n-1,4) - p(1,4), p(n-1,1) - p(1,1), p(n-1,2) - p(1,2), 
+     &p(n-1,3) - p(1,3)
+        write(scatinfo,'(A, 4I10, 4F10.4)') 'PI',
+     &line, K(line, 1), K(line, 2), K(line, 3),
+     &P(LINE,4), P(LINE,1), P(LINE,2), P(LINE,3)
+        write(scatinfo,'(A, 4I10, 4F10.4)') 'PO',
+     &n, K(n, 1), K(n, 2), K(n, 3),
+     &P(n,4), P(n,1), P(n,2), P(n,3)
+      end if
 
 C--store scattering centre before interaction in separate common block
 	 if (writescatcen.and.(.not.rejectt).and.
@@ -4942,24 +4954,6 @@ C--------------------
      &write(logfid,*)'dokinematics did not reach sensible mass: ',l,
      &p(n,5),newm,p(l,5),newm2
 	NSCATEFF=NSCATEFF+EVWEIGHT
-
-      if (oldpt.ge.minptscatinfo) then 
-        NSCATHIGHPT=NSCATHIGHPT+1
-        ! write(scatinfo,'(A, 4F10.4)') 'Incoming parton = ', P(lold, 4), 
-       ! &P(lold,1), P(lold,2), P(lold,3)    
-        ! write(scatinfo,'(A, F10.5)') 'QSUM2 = ', QSUM2
-        ! write(scatinfo,'(A, 4F10.4)') 'Outcoming parton = ',
-       ! &P(LINE,4 ), P(LINE,1), P(LINE,2), P(LINE,3)    
-        ! write(scatinfo,'(A)') 'SOLVED'
-        write(scatinfo,'(A, 4I10, 4F10.4)') 'PI',
-     &lold, K(lold, 1), K(lold, 2), K(lold, 3),
-     &P(lold,4), P(lold,1), P(lold,2), P(lold,3)
-        write(scatinfo,'(A, 4I10, 4F10.4)') 'PO',
-     &line, K(line, 1), K(line, 2), K(line, 3),
-     &P(LINE,4), P(LINE,1), P(LINE,2), P(LINE,3)
-        write(scatinfo,'(A, F10.4)') 'I', QSUM2
-        write(scatinfo,*)
-      endif
       END
 
 
@@ -7076,17 +7070,6 @@ C--calculate upper limit for density*cross section
        R=PYR(0)
 	 IF(R.LT.WEIGHT)THEN
 	  GETDELTAT=.TRUE.
-      localtemp = GETTEMP(xs, ys, zs, ts)
-      oldpt = sqrt(P(LINE,1) ** 2 + P(LINE, 2) ** 2)
-
-      if (oldpt.ge.minptscatinfo) then
-      !  write(scatinfo,'(A, 5F10.4, A, F10.4, A, F10.4, A, F10.4, A, A)')
-      ! &'Medium pos = ', TS, XS, YS, ZS, TAU, ', Temp = ', localtemp,
-      ! &', NEFF = ', NEFF, ', Prob = ', WEIGHT, ', state = ', STATETYPE
-      write(scatinfo,'(A, 7F10.4, 1X, A)')
-     &'M', TS, XS, YS, ZS, localtemp, NEFF, WEIGHT, STATETYPE
-      endif
-
 	  RETURN
 	 ENDIF
  333	CONTINUE
