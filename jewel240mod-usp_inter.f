@@ -85,6 +85,9 @@ C--identifier of file for hepmc output and logfile
 C--number of protons
 	common/np/nproton,mass
 	integer nproton,mass
+C--production point
+	common/jetpoint/x0,y0,z0,t0
+	double precision x0,y0,z0,t0
 C--organisation of event record
 	common/evrecord/nsim,npart,offset,hadrotype,sqrts,collider,hadro,
      &shorthepmc,channel,isochannel
@@ -102,8 +105,8 @@ C--event weight
 	COMMON/WEIGHT/EVWEIGHT,sumofweights
 	double precision EVWEIGHT,sumofweights
 C--number of scattering events
-	COMMON/CHECK/NSCAT,NSCATEFF,NSPLIT,NSCATHIGHPT
-	DOUBLE PRECISION NSCAT,NSCATEFF,NSPLIT,NSCATHIGHPT
+	COMMON/CHECK/NSCAT,NSCATEFF,NSPLIT,NSCATHIGHQ2
+	DOUBLE PRECISION NSCAT,NSCATEFF,NSPLIT,NSCATHIGHQ2
 C--number of extrapolations in tables
 	common/extrapolations/ntotspliti,noverspliti,ntotpdf,noverpdf,
      &ntotxsec,noverxsec,ntotsuda,noversuda
@@ -141,7 +144,7 @@ C--e+ + e- event generation
 	    write(logfid,*)
 C--e+ + e- event loop
 	  DO 100 J=1,NSIM
-          NSCATHIGHPT = 0
+          NSCATHIGHQ2 = 0
 	      call genevent(j,b1,b2)
  100	  CONTINUE
 	  sumofweightstot = sumofweightstot+sumofweights
@@ -222,10 +225,11 @@ C--loop over channels
 	    write(logfid,*)
 C--event loop
 	    DO 102 J=1,nsimchn
-          NSCATHIGHPT = 0
+          NSCATHIGHQ2 = 0
 	      call genevent(j,b1,b2)
-          write(scatinfo, '(A, 1X, A, 1X, A, F6.1 ES25.8E3)') 
-     &'E', b1, b2, NSCATHIGHPT, EVWEIGHT
+          write(scatinfo, '(A, 1X, A, 1X, A, 1X, 4F10.6, 
+     &F6.0, ES25.8E3)') 
+     &'E', b1, b2, t0, x0, y0, z0, NSCATHIGHQ2, EVWEIGHT
           write(scatinfo,*) 
 
  102	    CONTINUE
@@ -364,8 +368,8 @@ C--factor in front of alphas argument
 	COMMON/ALPHASFAC/PTFAC
 	DOUBLE PRECISION PTFAC
 C--number of scattering events
-	COMMON/CHECK/NSCAT,NSCATEFF,NSPLIT,NSCATHIGHPT
-	DOUBLE PRECISION NSCAT,NSCATEFF,NSPLIT,NSCATHIGHPT
+	COMMON/CHECK/NSCAT,NSCATEFF,NSPLIT,NSCATHIGHQ2
+	DOUBLE PRECISION NSCAT,NSCATEFF,NSPLIT,NSCATHIGHQ2
 C--number of extrapolations in tables
 	common/extrapolations/ntotspliti,noverspliti,ntotpdf,noverpdf,
      &ntotxsec,noverxsec,ntotsuda,noversuda
@@ -409,8 +413,8 @@ C--ISR debug
       COMMON/ISRDEBUG/ISRFLAG
       LOGICAL ISRFLAG
 C--scattering info variables
-      COMMON/SCATINFOVAR/MINPTSCATINFO
-      DOUBLE PRECISION MINPTSCATINFO
+      COMMON/SCATINFOVAR/MINABSQ2SCATINFO
+      DOUBLE PRECISION MINABSQ2SCATINFO
 
 C--Variables local to this program
 	INTEGER NJOB,ios,pos,i,j,jj,intmass
@@ -468,7 +472,7 @@ C--default settings
 	rechardcut = 5.
 	kinmode = 1
 	recmode = 0
-      minptscatinfo = 3.d0
+      minabsq2scatinfo = 0.d0
       isrflag = .true.
 	
 	if (iargc().eq.0) then
@@ -562,8 +566,8 @@ C--default settings
             read(value,*,iostat=ios) kinmode
           elseif(label.eq."RECMODE")then
             read(value,*,iostat=ios) recmode
-          elseif(label.eq."MINPTSCATINFO")then
-            read(value,*,iostat=ios) minptscatinfo
+          elseif(label.eq."MINQ2SCATINFO")then
+            read(value,*,iostat=ios) minabsq2scatinfo
           elseif(label.eq."ISRON")then
             read(value,*,iostat=ios) isrflag 
 	    else
@@ -803,7 +807,6 @@ C--Call PYR once for initialization
 	NSCAT=0.d0
 	NSCATEFF=0.d0
 	NSPLIT=0.d0
-      NSCATHIGHPT=0
 
 	ntotspliti=0
 	noverspliti=0
@@ -1090,8 +1093,8 @@ C--colour index common block
 	COMMON/COLOUR/TRIP(23000),ANTI(23000),COLMAX
 	INTEGER TRIP,ANTI,COLMAX
 C--number of scattering events
-	COMMON/CHECK/NSCAT,NSCATEFF,NSPLIT,NSCATHIGHPT
-	DOUBLE PRECISION NSCAT,NSCATEFF,NSPLIT,NSCATHIGHPT
+	COMMON/CHECK/NSCAT,NSCATEFF,NSPLIT,NSCATHIGHQ2
+	DOUBLE PRECISION NSCAT,NSCATEFF,NSPLIT,NSCATHIGHQ2
 C--event weight
 	COMMON/WEIGHT/EVWEIGHT,sumofweights
 	double precision EVWEIGHT,sumofweights
@@ -1102,8 +1105,8 @@ C--max rapidity
 	common/rapmax/etamax
 	double precision etamax
 C--production point
-	common/jetpoint/x0,y0
-	double precision x0,y0
+	common/jetpoint/x0,y0,z0,t0
+	double precision x0,y0,z0,t0
 C--organisation of event record
 	common/evrecord/nsim,npart,offset,hadrotype,sqrts,collider,hadro,
      &shorthepmc,channel,isochannel
@@ -1154,6 +1157,8 @@ C--Variables local to this program
 C--initialisation with matrix element	 
 C--production vertex
         CALL PICKVTX(X0,Y0)
+        Z0 = 0
+        T0 = 0
         LTIME=GETLTIMEMAX()
  
  99	  CALL PYEVNT
@@ -2414,8 +2419,8 @@ C--variables for angular ordering
 	DOUBLE PRECISION ZA,ZD,THETAA
       LOGICAL QQBARD
 C--number of scattering events
-	COMMON/CHECK/NSCAT,NSCATEFF,NSPLIT,NSCATHIGHPT
-	DOUBLE PRECISION NSCAT,NSCATEFF,NSPLIT,NSCATHIGHPT
+	COMMON/CHECK/NSCAT,NSCATEFF,NSPLIT,NSCATHIGHQ2
+	DOUBLE PRECISION NSCAT,NSCATEFF,NSPLIT,NSCATHIGHQ2
 C--variables for coherent scattering
 	COMMON/COHERENT/NSTART,NEND,ALLQS(10000,6),SCATCENTRES(10000,10),
      &QSUMVEC(4),QSUM2
@@ -2722,8 +2727,8 @@ C--variables for angular ordering
 	DOUBLE PRECISION ZA,ZD,THETAA
       LOGICAL QQBARD
 C--number of scattering events
-	COMMON/CHECK/NSCAT,NSCATEFF,NSPLIT,NSCATHIGHPT
-	DOUBLE PRECISION NSCAT,NSCATEFF,NSPLIT,NSCATHIGHPT
+	COMMON/CHECK/NSCAT,NSCATEFF,NSPLIT,NSCATHIGHQ2
+	DOUBLE PRECISION NSCAT,NSCATEFF,NSPLIT,NSCATHIGHQ2
 C--event weight
 	COMMON/WEIGHT/EVWEIGHT,sumofweights
 	double precision EVWEIGHT,sumofweights
@@ -3003,8 +3008,8 @@ C--Parameter common block
      &RECSOFTCUT,RECHARDCUT
       LOGICAL ANGORD,SCATRECOIL,ALLHAD,compress
 C--number of scattering events
-	COMMON/CHECK/NSCAT,NSCATEFF,NSPLIT,NSCATHIGHPT
-	DOUBLE PRECISION NSCAT,NSCATEFF,NSPLIT,NSCATHIGHPT
+	COMMON/CHECK/NSCAT,NSCATEFF,NSPLIT,NSCATHIGHQ2
+	DOUBLE PRECISION NSCAT,NSCATEFF,NSPLIT,NSCATHIGHQ2
 C--event weight
 	COMMON/WEIGHT/EVWEIGHT,sumofweights
 	double precision EVWEIGHT,sumofweights
@@ -4199,8 +4204,8 @@ C--variables for coherent scattering
 	INTEGER NSTART,NEND
 	DOUBLE PRECISION ALLQS,SCATCENTRES,QSUMVEC,QSUM2
 C--number of scattering events
-	COMMON/CHECK/NSCAT,NSCATEFF,NSPLIT,NSCATHIGHPT
-	DOUBLE PRECISION NSCAT,NSCATEFF,NSPLIT,NSCATHIGHPT
+	COMMON/CHECK/NSCAT,NSCATEFF,NSPLIT,NSCATHIGHQ2
+	DOUBLE PRECISION NSCAT,NSCATEFF,NSPLIT,NSCATHIGHQ2
 C--event weight
 	COMMON/WEIGHT/EVWEIGHT,sumofweights
 	double precision EVWEIGHT,sumofweights
@@ -4214,9 +4219,8 @@ C--extra storage for dummy particles for subtraction
       common/storedummies/dummies(10000,5)
 	double precision dummies
 C--scattering info variables
-      COMMON/SCATINFOVAR/MINPTSCATINFO
-      DOUBLE PRECISION MINPTSCATINFO
-      DOUBLE PRECISION OLDPT
+      COMMON/SCATINFOVAR/MINABSQ2SCATINFO
+      DOUBLE PRECISION MINABSQ2SCATINFO
 
 C--local variables
       INTEGER L,LINE,N1,N2,J,DIR,lold,nold,colmaxold,statold,nscatcenold
@@ -4235,9 +4239,6 @@ C--local variables
       ! Hydro change
       double precision pxfluidframe, pyfluidframe, pzfluidframe,
      &efluidframe, scmass, q2scat
-
-      oldpt = sqrt(P(lold, 1) ** 2 + P(lold, 2) ** 2)
-      ! Hard limit for showing the scattering and parton info
 
       IF((N+2*(n2-n1+1)).GT.22990)THEN
         write(logfid,*)'event too long for event record'
@@ -4774,20 +4775,24 @@ C--set the production vertices: x_mother + (tprod - tprod_mother) * beta_mother
       Q2SCAT = (P(n,4) - P(line,4))**2 - (P(n,1) - P(line,1))**2
      &- (P(n,2) - P(line,2))**2 - (P(n,3) - P(line,3))**2
 
-      ! line = incoming shower parton
-      ! n = outcoming shower parton
-      ! n-1 = recoil 
-      write(scatinfo,'(A, F10.6)') 'Q2', Q2SCAT
-      write(scatinfo,'(A, 8F10.6)')
+      if (abs(Q2SCAT).gt.minabsq2scatinfo) then
+        NSCATHIGHQ2 = NSCATHIGHQ2 + 1
+
+        ! line = incoming shower parton
+        ! n = outcoming shower parton
+        ! n-1 = recoil 
+        write(scatinfo,'(A, F12.6)') 'Q2', Q2SCAT
+        write(scatinfo,'(A, 8F12.6)')
      &'M', MV(1,4), MV(1,1), MV(1,2), MV(1,3), 
      &p(n-1,4) - p(1,4), p(n-1,1) - p(1,1), p(n-1,2) - p(1,2), 
      &p(n-1,3) - p(1,3)
-        write(scatinfo,'(A, 4I10, 4F10.4)') 'PI',
+        write(scatinfo,'(A, 4I10, 4F12.6)') 'PI',
      &line, K(line, 1), K(line, 2), K(line, 3),
      &P(LINE,4), P(LINE,1), P(LINE,2), P(LINE,3)
-        write(scatinfo,'(A, 4I10, 4F10.4)') 'PO',
+        write(scatinfo,'(A, 4I10, 4F12.6)') 'PO',
      &n, K(n, 1), K(n, 2), K(n, 3),
      &P(n,4), P(n,1), P(n,2), P(n,3)
+        end if
       end if
 
 C--store scattering centre before interaction in separate common block
@@ -6946,9 +6951,9 @@ C--memory for error message from getdeltat
 	common/errline/errl
 	integer errl
 C--scattering info variables
-      COMMON/SCATINFOVAR/MINPTSCATINFO
-      DOUBLE PRECISION MINPTSCATINFO
-      DOUBLE PRECISION LOCALTEMP, GETTEMP, OLDPT
+      COMMON/SCATINFOVAR/MINABSQ2SCATINFO
+      DOUBLE PRECISION MINABSQ2SCATINFO
+      DOUBLE PRECISION LOCALTEMP, GETTEMP
 
 C--local variables
       INTEGER LINE,I,NNULL
