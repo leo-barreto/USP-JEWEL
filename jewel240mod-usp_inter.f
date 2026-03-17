@@ -1,4 +1,4 @@
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Ci++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C++ Copyright (C) 2022 Korinna C. Zapp [Korinna.Zapp@thep.lu.se]    ++
 C++                                                                 ++
 C++ This file is part of JEWEL 2.4.0                                ++
@@ -619,11 +619,15 @@ C--default settings
 	call printtime
 	call printlogo(logfid)
 
+      write(logfid,*) 
       write(logfid,*) '========== EXPERIMENTAL FEATURE =========='
       write(logfid,*) 'ATTENTION: CUSTOM SCATTERING INFO VERSION!'
+      write(logfid,*) 
 
+      write(*,*) 
       write(*,*) '========== EXPERIMENTAL FEATURE =========='
       write(*,*) 'ATTENTION: CUSTOM SCATTERING INFO VERSION!'
+      write(*,*) 
 
       OPEN(unit=scatinfo,file=SCATINFOFILE,status='unknown')
 
@@ -4239,6 +4243,9 @@ C--scattering info variables
       COMMON/SCATINFOVAR/MINABSQ2SCATINFO,WRITESCATINFO,WRITESCATEXTRA
       DOUBLE PRECISION MINABSQ2SCATINFO
       LOGICAL WRITESCATINFO,WRITESCATEXTRA
+      
+      double precision getn0, getu, getutheta, getuz
+      double precision umx, umy, umz, umr, umtheta, gamm
 
 C--local variables
       INTEGER L,LINE,N1,N2,J,DIR,lold,nold,colmaxold,statold,nscatcenold
@@ -4806,7 +4813,18 @@ C--set the production vertices: x_mother + (tprod - tprod_mother) * beta_mother
      &p(n-1,3) - p(1,3)
 
         if (writescatextra) then
-          write(scatinfo, '(A, F12.6)') 'T', localt
+          umr = getu(MV(1,1), MV(1,2), MV(1,3), MV(1,4), localt)
+          umtheta = getutheta(MV(1,1), MV(1,2), MV(1,3), MV(1,4), 
+     &localt)
+          umz = getuz(MV(1,1), MV(1,2), MV(1,3), MV(1,4), localt)
+          
+          umx = umr * cos(umtheta)
+          umy = umr * sin(umtheta)
+          gamm = sqrt(1 + umr ** 2 + umz ** 2)
+
+          write(scatinfo, '(A, 6F12.6, I10)') 'T', localt, 
+     &getn0(MV(1,1), MV(1,2), MV(1,3), MV(1,4)),
+     &gamm, umx, umy, umz, K(n-1,2)
         end if
 
         write(scatinfo,'(A, 4I10, 4F12.6)') 'PI',
