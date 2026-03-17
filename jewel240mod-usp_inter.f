@@ -581,7 +581,7 @@ C--default settings
             read(value,*,iostat=ios) writescatextra
           elseif(label.eq."MINQ2SCATINFO")then
             read(value,*,iostat=ios) minabsq2scatinfo
-          elseif(label.eq."ISRON")then
+          elseif(label.eq."ISRFLAG")then
             read(value,*,iostat=ios) isrflag 
 	    else
 	      write(*,*)'unknown label ',label
@@ -629,7 +629,9 @@ C--default settings
       write(*,*) 'ATTENTION: CUSTOM SCATTERING INFO VERSION!'
       write(*,*) 
 
-      OPEN(unit=scatinfo,file=SCATINFOFILE,status='unknown')
+      if (writescatinfo) then
+        OPEN(unit=scatinfo,file=SCATINFOFILE,status='replace')
+      end if
 
 	write(logfid,*)
 	write(logfid,*)'parameters of the run:'
@@ -637,7 +639,6 @@ C--default settings
 	write(logfid,*)'NJOB           = ',njob
 	write(logfid,*)'LOGFILE        = ',logfile
 	write(logfid,*)'HEPMCFILE      = ',hepmcfile
-  	write(logfid,*)'SCATINFOFILE   = ',scatinfofile
 	write(logfid,*)'SPLITINTFILE   = ',filesplit
 	write(logfid,*)'PDFFILE        = ',pdffile
 	write(logfid,*)'XSECFILE       = ',xsecfile
@@ -671,10 +672,11 @@ C--default settings
 	write(logfid,*)'WRITEDUMMIES   = ',writedummies
 	write(logfid,*)'KINMODE        = ',kinmode
 	write(logfid,*)'RECMODE        = ',recmode
+  	write(logfid,*)'SCATINFOFILE   = ',scatinfofile
 	write(logfid,*)'WRITESCATINFO  = ',writescatinfo
 	write(logfid,*)'WRITESCATEXTRA = ',writescatextra
 	write(logfid,*)'MINQ2SCATINFO  = ',minabsq2scatinfo
-	write(logfid,*)'ISRON          = ',isrflag
+	write(logfid,*)'ISRFLAG        = ',isrflag
 	write(logfid,*)
 	call flush(logfid)
 
