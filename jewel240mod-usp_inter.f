@@ -112,6 +112,10 @@ C--number of extrapolations in tables
      &ntotxsec,noverxsec,ntotsuda,noversuda
 	integer ntotspliti,noverspliti,ntotpdf,noverpdf,
      &ntotxsec,noverxsec,ntotsuda,noversuda
+C--scattering info variables
+      COMMON/SCATINFOVAR/MINABSQ2SCATINFO,WRITESCATINFO,WRITESCATEXTRA
+      DOUBLE PRECISION MINABSQ2SCATINFO
+      LOGICAL WRITESCATINFO,WRITESCATEXTRA
 C--local variables
 	integer j,i,kk,poissonian
       integer nsimpp,nsimpn,nsimnp,nsimnn,nsimsum,nsimchn
@@ -227,10 +231,12 @@ C--event loop
 	    DO 102 J=1,nsimchn
           NSCATHIGHQ2 = 0
 	      call genevent(j,b1,b2)
-          write(scatinfo, '(A, 1X, A, 1X, A, 1X, 4F10.6, 
+          if (writescatinfo) then
+            write(scatinfo, '(A, 1X, A, 1X, A, 1X, 4F10.6, 
      &F6.0, ES25.8E3)') 
      &'E', b1, b2, t0, x0, y0, z0, NSCATHIGHQ2, EVWEIGHT
-          write(scatinfo,*) 
+            write(scatinfo,*)
+          end if 
 
  102	    CONTINUE
 	    sumofweightstot = sumofweightstot+sumofweights
@@ -413,8 +419,9 @@ C--ISR debug
       COMMON/ISRDEBUG/ISRFLAG
       LOGICAL ISRFLAG
 C--scattering info variables
-      COMMON/SCATINFOVAR/MINABSQ2SCATINFO
+      COMMON/SCATINFOVAR/MINABSQ2SCATINFO,WRITESCATINFO,WRITESCATEXTRA
       DOUBLE PRECISION MINABSQ2SCATINFO
+      LOGICAL WRITESCATINFO,WRITESCATEXTRA
 
 C--Variables local to this program
 	INTEGER NJOB,ios,pos,i,j,jj,intmass
@@ -438,7 +445,6 @@ C--default settings
 	njob = 0
 	logfile = 'out.log'
 	hepmcfile = 'out.hepmc'
-      scatinfofile = 'scatinfo.dat'
 	filesplit = 'splitint.dat'
 	pdffile = 'pdfs.dat'
 	xsecfile = 'xsecs.dat'
@@ -472,6 +478,9 @@ C--default settings
 	rechardcut = 5.
 	kinmode = 1
 	recmode = 0
+      writescatinfo = .false.
+      writescatextra = .false.
+      scatinfofile = 'scatinfo.dat'
       minabsq2scatinfo = 0.d0
       isrflag = .true.
 	
@@ -498,7 +507,7 @@ C--default settings
             read(value,'(a)',iostat=ios) logfile
           elseif(label.eq."HEPMCFILE")then
             read(value,'(a)',iostat=ios) hepmcfile
-          elseif(label.eq."SCATINFO")then
+          elseif(label.eq."SCATINFOFILE")then
             read(value,'(a)',iostat=ios) scatinfofile
           elseif(label.eq."SPLITINTFILE")then
             read(value,'(a)',iostat=ios) filesplit
@@ -566,6 +575,10 @@ C--default settings
             read(value,*,iostat=ios) kinmode
           elseif(label.eq."RECMODE")then
             read(value,*,iostat=ios) recmode
+          elseif(label.eq."WRITESCATINFO")then
+            read(value,*,iostat=ios) writescatinfo
+          elseif(label.eq."WRITESCATEXTRA")then
+            read(value,*,iostat=ios) writescatextra
           elseif(label.eq."MINQ2SCATINFO")then
             read(value,*,iostat=ios) minabsq2scatinfo
           elseif(label.eq."ISRON")then
@@ -616,44 +629,48 @@ C--default settings
 
 	write(logfid,*)
 	write(logfid,*)'parameters of the run:'
-	write(logfid,*)'NEVENT       = ',nsim
-	write(logfid,*)'NJOB         = ',njob
-	write(logfid,*)'LOGFILE      = ',logfile
-	write(logfid,*)'HEPMCFILE    = ',hepmcfile
-  	write(logfid,*)'SCATINFO     = ',scatinfofile
-	write(logfid,*)'SPLITINTFILE = ',filesplit
-	write(logfid,*)'PDFFILE      = ',pdffile
-	write(logfid,*)'XSECFILE     = ',xsecfile
-	write(logfid,*)'MEDIUMPARAMS = ',filemed
-	write(logfid,*)'NF           = ',nf
-	write(logfid,*)'LAMBDAQCD    = ',lqcd
-	write(logfid,*)'Q0           = ',q0
-	write(logfid,*)'PTMIN        = ',ptmin
-	write(logfid,*)'PTMAX        = ',ptmax
-	write(logfid,*)'ETAMAX       = ',etamax
-	write(logfid,*)'PROCESS      = ',collider
-	write(logfid,*)'ISOCHANNEL   = ',isochannel
-	write(logfid,*)'CHANNEL      = ',channel
-	write(logfid,*)'SQRTS        = ',sqrts
-	write(logfid,*)'PDFSET       = ',pdfset
-	write(logfid,*)'PDFALPHAS       = ',pdfalphas
-	write(logfid,*)'MASS         = ',mass
-	write(logfid,*)'NPROTON      = ',nproton
-	write(logfid,*)'WEIGHTED     = ',weighted
-	write(logfid,*)'WEXPO        = ',weightex
-	write(logfid,*)'ANGORD       = ',angord
-	write(logfid,*)'HADRO        = ',hadro
-	write(logfid,*)'HADROTYPE    = ',hadrotype
-	write(logfid,*)'SHORTHEPMC   = ',shorthepmc
-	write(logfid,*)'COMPRESS     = ',compress
-	write(logfid,*)'KEEPRECOILS  = ',allhad
-	write(logfid,*)'SCATRECOIL   = ',scatrecoil
-	write(logfid,*)'RECSOFTCUT   = ',recsoftcut
-	write(logfid,*)'RECHARDCUT   = ',rechardcut
-	write(logfid,*)'WRITESCATCEN = ',writescatcen
-	write(logfid,*)'WRITEDUMMIES = ',writedummies
-	write(logfid,*)'KINMODE      = ',kinmode
-	write(logfid,*)'RECMODE      = ',recmode
+	write(logfid,*)'NEVENT         = ',nsim
+	write(logfid,*)'NJOB           = ',njob
+	write(logfid,*)'LOGFILE        = ',logfile
+	write(logfid,*)'HEPMCFILE      = ',hepmcfile
+  	write(logfid,*)'SCATINFOFILE   = ',scatinfofile
+	write(logfid,*)'SPLITINTFILE   = ',filesplit
+	write(logfid,*)'PDFFILE        = ',pdffile
+	write(logfid,*)'XSECFILE       = ',xsecfile
+	write(logfid,*)'MEDIUMPARAMS   = ',filemed
+	write(logfid,*)'NF             = ',nf
+	write(logfid,*)'LAMBDAQCD      = ',lqcd
+	write(logfid,*)'Q0             = ',q0
+	write(logfid,*)'PTMIN          = ',ptmin
+	write(logfid,*)'PTMAX          = ',ptmax
+	write(logfid,*)'ETAMAX         = ',etamax
+	write(logfid,*)'PROCESS        = ',collider
+	write(logfid,*)'ISOCHANNEL     = ',isochannel
+	write(logfid,*)'CHANNEL        = ',channel
+	write(logfid,*)'SQRTS          = ',sqrts
+	write(logfid,*)'PDFSET         = ',pdfset
+	write(logfid,*)'PDFALPHAS      = ',pdfalphas
+	write(logfid,*)'MASS           = ',mass
+	write(logfid,*)'NPROTON        = ',nproton
+	write(logfid,*)'WEIGHTED       = ',weighted
+	write(logfid,*)'WEXPO          = ',weightex
+	write(logfid,*)'ANGORD         = ',angord
+	write(logfid,*)'HADRO          = ',hadro
+	write(logfid,*)'HADROTYPE      = ',hadrotype
+	write(logfid,*)'SHORTHEPMC     = ',shorthepmc
+	write(logfid,*)'COMPRESS       = ',compress
+	write(logfid,*)'KEEPRECOILS    = ',allhad
+	write(logfid,*)'SCATRECOIL     = ',scatrecoil
+	write(logfid,*)'RECSOFTCUT     = ',recsoftcut
+	write(logfid,*)'RECHARDCUT     = ',rechardcut
+	write(logfid,*)'WRITESCATCEN   = ',writescatcen
+	write(logfid,*)'WRITEDUMMIES   = ',writedummies
+	write(logfid,*)'KINMODE        = ',kinmode
+	write(logfid,*)'RECMODE        = ',recmode
+	write(logfid,*)'WRITESCATINFO  = ',writescatinfo
+	write(logfid,*)'WRITESCATEXTRA = ',writescatextra
+	write(logfid,*)'MINQ2SCATINFO  = ',minabsq2scatinfo
+	write(logfid,*)'ISRON          = ',isrflag
 	write(logfid,*)
 	call flush(logfid)
 
@@ -4219,8 +4236,9 @@ C--extra storage for dummy particles for subtraction
       common/storedummies/dummies(10000,5)
 	double precision dummies
 C--scattering info variables
-      COMMON/SCATINFOVAR/MINABSQ2SCATINFO
+      COMMON/SCATINFOVAR/MINABSQ2SCATINFO,WRITESCATINFO,WRITESCATEXTRA
       DOUBLE PRECISION MINABSQ2SCATINFO
+      LOGICAL WRITESCATINFO,WRITESCATEXTRA
 
 C--local variables
       INTEGER L,LINE,N1,N2,J,DIR,lold,nold,colmaxold,statold,nscatcenold
@@ -4775,7 +4793,7 @@ C--set the production vertices: x_mother + (tprod - tprod_mother) * beta_mother
       Q2SCAT = (P(n,4) - P(line,4))**2 - (P(n,1) - P(line,1))**2
      &- (P(n,2) - P(line,2))**2 - (P(n,3) - P(line,3))**2
 
-      if (abs(Q2SCAT).gt.minabsq2scatinfo) then
+      if ((abs(Q2SCAT).gt.minabsq2scatinfo).and.(writescatinfo)) then
         NSCATHIGHQ2 = NSCATHIGHQ2 + 1
 
         ! line = incoming shower parton
@@ -4786,6 +4804,11 @@ C--set the production vertices: x_mother + (tprod - tprod_mother) * beta_mother
      &'M', MV(1,4), MV(1,1), MV(1,2), MV(1,3), 
      &p(n-1,4) - p(1,4), p(n-1,1) - p(1,1), p(n-1,2) - p(1,2), 
      &p(n-1,3) - p(1,3)
+
+        if (writescatextra) then
+          write(scatinfo, '(A, F12.6)') 'T', localt
+        end if
+
         write(scatinfo,'(A, 4I10, 4F12.6)') 'PI',
      &line, K(line, 1), K(line, 2), K(line, 3),
      &P(LINE,4), P(LINE,1), P(LINE,2), P(LINE,3)
@@ -6951,9 +6974,10 @@ C--memory for error message from getdeltat
 	common/errline/errl
 	integer errl
 C--scattering info variables
-      COMMON/SCATINFOVAR/MINABSQ2SCATINFO
-      DOUBLE PRECISION MINABSQ2SCATINFO
       DOUBLE PRECISION LOCALTEMP, GETTEMP
+      COMMON/SCATINFOVAR/MINABSQ2SCATINFO,WRITESCATINFO,WRITESCATEXTRA
+      DOUBLE PRECISION MINABSQ2SCATINFO
+      LOGICAL WRITESCATINFO,WRITESCATEXTRA
 
 C--local variables
       INTEGER LINE,I,NNULL
