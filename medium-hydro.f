@@ -903,6 +903,37 @@ C--hydrodynamic quantities
             getutheta=interpol(tau,x,y,834,timesteps,utheta,.false.)
             return
       end function
+      
+      double precision function getuz(x,y,z,t,localtemperature)
+            implicit none
+            double precision x,y,z,t,tau,localtemperature
+            COMMON/MEDPARAMINT/TAUI,TI,TC,D3,ZETA3,D,
+     &      N0,SIGMANN,A,WOODSSAXON,MODMED,MEDFILELIST
+            DOUBLE PRECISION TAUI,TI,TC,ALPHA,BETA,GAMMA,D3,ZETA3,D,N0,
+     &      SIGMANN
+            INTEGER A
+            LOGICAL WOODSSAXON,MODMED,MEDFILELIST
+C--hydrodynamic quantities
+            COMMON /HYDROLIM/ MIDRAPLIM, TMAXLIM, TVELMAXLIM, BOOSTTR,
+     &      GLOBALLIMS, PRETAUHYDRO
+            DOUBLE PRECISION MIDRAPLIM, TMAXLIM, TVELMAXLIM
+            LOGICAL BOOSTTR, GLOBALLIMS, PRETAUHYDRO
+C--longitudinal boost of momentum distribution
+            common/boostmed/boost
+            logical boost
+
+            getuz = 0.d0
+            tau = sqrt(t**2-z**2)
+            if (tau.le.0.d0) then 
+                return
+            end if
+
+            if (boost.and.(localtemperature.ge.TC)) then
+                getuz = z / tau
+            end if
+            
+            return
+      end function
 
 
       subroutine LorentzBoostToLabFrame(e, px, py, pz, x, y, z, t)
@@ -917,7 +948,7 @@ C--max rapidity
      &      boostm(4,4)
             double precision ux, uy, uz, gam, u2, ux2, uy2, uz2,
      &      unorm, uangle, tau
-            double precision getu,getutheta
+            double precision getu, getutheta, getuz
 C--local variables
             double precision e, px, py, pz, x, y, z, t
 
@@ -930,11 +961,7 @@ C--local variables
             ! since they are defined in the lab frame, thus the frame
             ! must be boosted as -u so the scattering centers are
             ! boosted as u.
-            if (tau.gt.0.d0 .and. boost) then
-              uz = -z / tau
-            else
-              uz = 0.d0
-            end if
+            uz = -1 * getuz(x, y, z, t, 10.d0)
 
             ! Respect simulation limit in uz
             if (abs(uz).gt.sinh(etamax2)) then
@@ -1005,7 +1032,7 @@ C--max rapidity
      &      boostm(4,4)
             double precision ux, uy, uz, gam, u2, ux2, uy2, uz2,
      &      unorm, uangle, tau
-            double precision getu,getutheta
+            double precision getu,getutheta,getuz
 C--local variables
             double precision e, px, py, pz, x, y, z, t
 
@@ -1017,11 +1044,7 @@ C--local variables
             ! Since we are transforming to the fluid rest frame, do not
             ! flip the direction of velocities, as they are defined in
             ! the lab frame 
-            if (tau.gt.0.d0 .and. boost) then
-              uz = z / tau
-            else
-              uz = 0.d0
-            end if
+            uz = getuz(x, y, z, t, 10.d0)
 
             ! Respect simulation limit in uz
             if (abs(uz).gt.sinh(etamax2)) then
