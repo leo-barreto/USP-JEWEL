@@ -275,11 +275,17 @@ C--read settings from file
 	  goto 40
 
  10     write(logfid,*)'Could not open medium parameter file, '//
-     &	'will run with default settings.'
+     &	'killing simulation.'
+        write(*,*)'Could not open medium parameter file, '//
+     &	'killing simulation.'
+         stop   
 
 	else
 	  write(logfid,*)'No medium parameter file found, '//
-     &	'will run with default settings.'
+     &	'killing simulation.'
+	  write(*,*)'No medium parameter file found, '//
+     &	'killing simulation.'
+         stop
 	endif
 
  40   write(logfid,*)'using parameters:'
