@@ -342,7 +342,7 @@ C--hydro auxiliary files
                   y2(i,j)=(igrid(i+1,j+2)-igrid(i+1,j))/(yc(i+1,j+2)
      &-yc(i+1,j))
                   y12(i,j)=(igrid(i+2,j+2)-igrid(i+2,j)-igrid(i,j+2)
-     &+igrid(i,j))/(yc(i+1,j+2)-yc(i+1,j))*(xc(i+2,j+1)-xc(i,j+1))
+     &+igrid(i,j))/((yc(i+1,j+2)-yc(i+1,j))*(xc(i+2,j+1)-xc(i,j+1)))
             end do
       end do
       
@@ -367,10 +367,10 @@ C--hydro auxiliary files
       double precision xa,xb
       double precision derspline
 
-      w(1)=derspline(x1(:,1),y(:,1),y1(:,1),xa,norm)
-      w(2)=derspline(x1(:,2),y(:,2),y1(:,1),xa,norm)
-      w1(1)=derspline(x1(:,1),y2(:,1),y12(:,1),xa,norm)
-      w1(2)=derspline(x1(:,2),y2(:,2),y12(:,1),xa,norm)
+      w(1) = derspline(x1(:,1), y(:,1), y1(:,1), xa, norm)
+      w(2) = derspline(x1(:,2), y(:,2), y1(:,2), xa, norm)
+      w1(1) = derspline(x1(:,1), y2(:,1) ,y12(:,1), xa, norm)
+      w1(2) = derspline(x1(:,2), y2(:,2), y12(:,2), xa, norm)
       
       dertwospline=derspline(x2(1,:),w(:),w1(:),xb,norm)
 
@@ -472,7 +472,8 @@ C--local variables
       do while (down .le. up)
           mid = (down + up) / 2
 
-          if (x .gt. array(mid) .and. x .le. array(mid + 1)) then
+          if (mid .lt. highbound .and.
+     &        x .ge. array(mid) .and. x .le. array(mid + 1)) then
               binarysearch = mid
               return 
           end if
