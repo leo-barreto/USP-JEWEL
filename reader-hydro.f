@@ -472,8 +472,7 @@ C--local variables
       do while (down .le. up)
           mid = (down + up) / 2
 
-          if (mid .lt. highbound .and.
-     &        x .ge. array(mid) .and. x .le. array(mid + 1)) then
+          if (x .gt. array(mid) .and. x .le. array(mid + 1)) then
               binarysearch = mid
               return 
           end if
