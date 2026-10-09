@@ -120,6 +120,11 @@ C--scattering info variables
       COMMON/SCATINFOVAR/MINABSQ2SCATINFO,WRITESCATINFO,WRITESCATEXTRA
       DOUBLE PRECISION MINABSQ2SCATINFO
       LOGICAL WRITESCATINFO,WRITESCATEXTRA
+C--write random generator file 
+       COMMON/RNGGEN/WRITERAN,RANFILE
+	logical writeran
+       character*220 ranfile 
+
 C--local variables
 	integer j,i,kk,poissonian
       integer nsimpp,nsimpn,nsimnp,nsimnn,nsimsum,nsimchn
@@ -282,8 +287,10 @@ C--finish
 	close(logfid,status='keep')
 
 C--write random number generator state to file and close it
-	CALL PYRGET(2,-1)
-	CLOSE(2,status='keep')
+      IF(WRITERAN) THEN
+	    CALL PYRGET(2,-1)
+	    CLOSE(2,status='keep')
+      ENDIF
 
 	END
 
@@ -433,6 +440,10 @@ C--scattering info variables
       COMMON/SCATINFOVAR/MINABSQ2SCATINFO,WRITESCATINFO,WRITESCATEXTRA
       DOUBLE PRECISION MINABSQ2SCATINFO
       LOGICAL WRITESCATINFO,WRITESCATEXTRA
+C--write random generator file 
+       COMMON/RNGGEN/WRITERAN,RANFILE
+	logical writeran
+       character*220 ranfile 
 
 C--Variables local to this program
 	INTEGER NJOB,ios,pos,i,j,jj,intmass
@@ -500,15 +511,18 @@ C--default settings
 	rechardcut = 5.
 	kinmode = 1
 	recmode = 0
+	cohlengthfac = 1.d0
+	pcohrej = 1.d0
+	cohscat = .true.
+	readran = .false.
+
       writescatinfo = .false.
       writescatextra = .false.
       scatinfofile = 'scatinfo.dat'
       minabsq2scatinfo = 0.d0
       isrflag = .true.
-	cohlengthfac = 1.d0
-	pcohrej = 1.d0
-	cohscat = .true.
-	readran = .false.
+      writeran = .false.
+	  ranfile = 'out.ran'
 
 	if (iargc().eq.0) then
 	  write(*,*)'No parameter file given, '//
@@ -637,6 +651,10 @@ C--default settings
             read(value,*,iostat=ios) minabsq2scatinfo
           elseif(label.eq."ISRFLAG")then
             read(value,*,iostat=ios) isrflag 
+          elseif(label.eq."WRITERAN")then
+            read(value,*,iostat=ios) writeran
+          elseif(label.eq."RANFILE")then
+            read(value,'(a)',iostat=ios) ranfile
 	    else
 	      write(*,*)'unknown label ',label
 	    endif
@@ -713,6 +731,7 @@ C--default settings
 	write(logfid,*)'SQRTS          = ',sqrts
 	write(logfid,*)'PDFSET         = ',pdfset
 	write(logfid,*)'PDFALPHAS      = ',pdfalphas
+      write(logfid,*)'XSECSCALEFAC  = ',xsecscalefac
 	write(logfid,*)'MASS           = ',mass
 	write(logfid,*)'NPROTON        = ',nproton
 	write(logfid,*)'WEIGHTED       = ',weighted
@@ -720,11 +739,23 @@ C--default settings
  	write(logfid,*)'MPI           = ',mpi
  	write(logfid,*)'MPIFSR        = ',mpifsr
  	write(logfid,*)'AOFIRSTSPLIT  = ',aofirstsplit
+      write(logfid,*)'HADRO         = ',hadro
+      write(logfid,*)'HADROTYPE     = ',hadrotype
  	write(logfid,*)'PI0DEC        = ',pi0dec
  	write(logfid,*)'ISRSCAT       = ',isrscat
+      write(logfid,*)'SHORTHEPMC    = ',shorthepmc
+      write(logfid,*)'COMPRESS      = ',compress
+      write(logfid,*)'KEEPRECOILS   = ',allhad
+      write(logfid,*)'SCATRECOIL    = ',scatrecoil
+      write(logfid,*)'RECSOFTCUT    = ',recsoftcut
+      write(logfid,*)'RECHARDCUT    = ',rechardcut
+      write(logfid,*)'WRITESCATCEN  = ',writescatcen
+      write(logfid,*)'WRITEDUMMIES  = ',writedummies
  	write(logfid,*)'DOSUBTRACTION = ',dosubtraction
  	write(logfid,*)'RSUB          = ',Rsub
  	write(logfid,*)'PUTONSHELL    = ',putonshell
+      write(logfid,*)'KINMODE       = ',kinmode
+      write(logfid,*)'RECMODE       = ',recmode
  	write(logfid,*)'COHLENGTHFAC  = ',cohlengthfac
         write(logfid,*)'PCOHREJ       = ',pcohrej
  	write(logfid,*)'COHSCAT       = ',cohscat
@@ -735,6 +766,8 @@ C--default settings
 	write(logfid,*)'WRITESCATEXTRA = ',writescatextra
 	write(logfid,*)'MINQ2SCATINFO  = ',minabsq2scatinfo
 	write(logfid,*)'ISRFLAG        = ',isrflag
+	write(logfid,*)'WRITERAN       = ',writeran
+	write(logfid,*)'RANFILE        = ',ranfile
 	write(logfid,*)
 	call flush(logfid)
 
@@ -887,11 +920,13 @@ C--read random number generator from file if desired
 	  WRITE(logfid,*) 'read random number generator status'
 	ENDIF
 
-C--write random number generator state to file
-	OPEN(unit=2,file='out.ran',access='sequential',form='unformatted',
-     &status='unknown')
-	CALL PYRGET(2,0)
-
+C--write random number generator state to file if desired
+      IF (WRITERAN) THEN
+         OPEN(unit=2,file=RANFILE,access='sequential',
+     &        form='unformatted', status='unknown')
+         CALL PYRGET(2,0)
+         WRITE(logfid,*) 'Write random number gen status to ', RANFILE
+      ENDIF
 
 
 	NDISC=0
@@ -1263,6 +1298,11 @@ C--special lines in event record
 	integer lme1,lme2,lv,llep1,llep2,lme1orig,lme2orig
 	character*2 type1,type2
 
+C--write random generator file 
+       COMMON/RNGGEN/WRITERAN,RANFILE
+	logical writeran
+       character*220 ranfile 
+
 C--Variables local to this program
 	INTEGER NOLD,PID,IPART,j,i,tnowsec,ETAsec,ETAh,ETAm,ETAs
 	integer*4 tnow(3)
@@ -1460,8 +1500,12 @@ C--write message to log-file
      &	time,tunit,' -> ',rtime,rtunit,' remaining'
         write(logfid,1001)'time now is ',tnow(1),tnow(2),tnow(3),
      &	'  -->  ETA: ',ETAh,ETAm,ETAs
- 	  CALL PYRGET(2,-1)
- 	  call flush(2)
+
+        IF (WRITERAN) THEN
+ 	      CALL PYRGET(2,-1)
+ 	      call flush(2)
+        END IF
+
       ENDIF
 	call flush(logfid)
 	end
