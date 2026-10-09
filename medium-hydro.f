@@ -217,10 +217,6 @@ C--read settings from file
             READ(BUFFER,*,IOSTAT=IOS) TC
           ELSE IF (LABEL=="WOODSSAXON") THEN
             READ(BUFFER,*,IOSTAT=IOS) WOODSSAXON
-          ELSE IF (LABEL=="MODMED") THEN
-            READ(BUFFER,*,IOSTAT=IOS) MODMED
-          ELSE IF (LABEL=="MEDFILE") THEN
-            READ(BUFFER,'(50A)',IOSTAT=IOS) MEDFILE
           ELSE IF (LABEL=="CENTRMIN") THEN
             READ(BUFFER,*,IOSTAT=IOS) CENTRMIN
           ELSE IF (LABEL=="CENTRMAX") THEN
@@ -237,6 +233,10 @@ C--read settings from file
             READ(BUFFER,*,IOSTAT=IOS) MDFACTOR
           ELSE IF (LABEL=="MDSCALEFAC") THEN
             READ(BUFFER,*,IOSTAT=IOS) MDSCALEFAC
+          ELSE IF (LABEL=="MODMED") THEN
+            READ(BUFFER,*,IOSTAT=IOS) MODMED
+          ELSE IF (LABEL=="MEDFILE") THEN
+            READ(BUFFER,'(50A)',IOSTAT=IOS) MEDFILE
           ELSE IF (LABEL=="GLOBALLIMS") THEN
             READ(BUFFER,*,IOSTAT=IOS) GLOBALLIMS
           ELSE IF (LABEL=="MIDRAPLIM") THEN
@@ -293,8 +293,6 @@ C--read settings from file
       write(logfid,*)'TI          = ',TI
       write(logfid,*)'TC          = ',TC
       write(logfid,*)'WOODSSAXON  = ',WOODSSAXON
-      write(logfid,*)'MODMED      = ',MODMED
-      write(logfid,*)'MEDFILELIST = ',MEDFILELIST
       write(logfid,*)'CENTRMIN    = ',CENTRMIN
       write(logfid,*)'CENTRMAX    = ',CENTRMAX
       write(logfid,*)'NF          = ',NF
@@ -305,6 +303,11 @@ C--read settings from file
       write(logfid,*)'MDFACTOR    = ',MDFACTOR
       write(logfid,*)'MDSCALEFAC  = ',MDSCALEFAC
       write(logfid,*)'BREAL       = ',breal
+          
+      write(logfid,*)''
+      write(logfid,*)'=== USP-JEWEL INTERFACE VARIABLES ==='
+      write(logfid,*)'MODMED      = ',MODMED
+      write(logfid,*)'MEDFILELIST = ',MEDFILELIST
       write(logfid,*)'GLOBALLIMS  = ',GLOBALLIMS
       write(logfid,*)'MIDRAPLIM   = ',MIDRAPLIM
       write(logfid,*)'TMAXLIM     = ',TMAXLIM

@@ -2,6 +2,7 @@ usp-jewel
 *.o
 *.hepm
 *.log
+*.ran
 *.swp
 user/*
 example/pdfs.dat

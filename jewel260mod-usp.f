@@ -674,17 +674,18 @@ C--default settings
 	call printtime
 	call printlogo(logfid)
 
-      write(logfid,*) 
-      write(logfid,*) '========== EXPERIMENTAL FEATURE =========='
-      write(logfid,*) 'ATTENTION: CUSTOM SCATTERING INFO VERSION!'
-      write(logfid,*) 
-
-      write(*,*) 
-      write(*,*) '========== EXPERIMENTAL FEATURE =========='
-      write(*,*) 'ATTENTION: CUSTOM SCATTERING INFO VERSION!'
-      write(*,*) 
 
       if (writescatinfo) then
+        write(logfid,*) 
+        write(logfid,*) '========== EXPERIMENTAL FEATURE =========='
+        write(logfid,*) 'ATTENTION: CUSTOM SCATTERING INFO VERSION!'
+        write(logfid,*) 
+
+        write(*,*) 
+        write(*,*) '========== EXPERIMENTAL FEATURE =========='
+        write(*,*) 'ATTENTION: CUSTOM SCATTERING INFO VERSION!'
+        write(*,*) 
+
         OPEN(unit=scatinfo,file=SCATINFOFILE,status='replace')
       end if
 
@@ -727,6 +728,8 @@ C--default settings
  	write(logfid,*)'COHLENGTHFAC  = ',cohlengthfac
         write(logfid,*)'PCOHREJ       = ',pcohrej
  	write(logfid,*)'COHSCAT       = ',cohscat
+         write(logfid,*)''
+         write(logfid,*)'=== USP-JEWEL INTERFACE VARIABLES ==='
   	write(logfid,*)'SCATINFOFILE   = ',scatinfofile
 	write(logfid,*)'WRITESCATINFO  = ',writescatinfo
 	write(logfid,*)'WRITESCATEXTRA = ',writescatextra
